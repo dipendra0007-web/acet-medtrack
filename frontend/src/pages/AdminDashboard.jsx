@@ -12,8 +12,15 @@ const AdminDashboard = () => {
   const [releaseName, setReleaseName] = useState('');
   const [releaseVersion, setReleaseVersion] = useState('');
   const [releaseDesc, setReleaseDesc] = useState('');
+  // APK
   const [releaseFileName, setReleaseFileName] = useState('');
   const [releaseFileData, setReleaseFileData] = useState('');
+  // IPA
+  const [releaseIpaFileName, setReleaseIpaFileName] = useState('');
+  const [releaseIpaFileData, setReleaseIpaFileData] = useState('');
+  // Cover photo
+  const [releasePhoto, setReleasePhoto] = useState('');
+  const [releasePhotoFileName, setReleasePhotoFileName] = useState('');
   const [showReleaseForm, setShowReleaseForm] = useState(false);
   const [isUploadingRelease, setIsUploadingRelease] = useState(false);
 
@@ -567,19 +574,55 @@ const AdminDashboard = () => {
   const handleReleaseFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setReleaseFileName(file.name);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setReleaseFileData(reader.result);
-    };
+    reader.onloadend = () => setReleaseFileData(reader.result);
     reader.readAsDataURL(file);
+  };
+
+  const handleIpaFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setReleaseIpaFileName(file.name);
+    const reader = new FileReader();
+    reader.onloadend = () => setReleaseIpaFileData(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleReleasePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setReleasePhotoFileName(file.name);
+    const reader = new FileReader();
+    reader.onloadend = () => setReleasePhoto(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const resetReleaseForm = () => {
+    setReleaseName('');
+    setReleaseVersion('');
+    setReleaseDesc('');
+    setReleaseFileName('');
+    setReleaseFileData('');
+    setReleaseIpaFileName('');
+    setReleaseIpaFileData('');
+    setReleasePhoto('');
+    setReleasePhotoFileName('');
+    const apkInput = document.getElementById('releaseFile');
+    if (apkInput) apkInput.value = '';
+    const ipaInput = document.getElementById('releaseIpaFile');
+    if (ipaInput) ipaInput.value = '';
+    const photoInput = document.getElementById('releasePhotoFile');
+    if (photoInput) photoInput.value = '';
   };
 
   const handleSaveRelease = async (e) => {
     e.preventDefault();
-    if (!releaseName || !releaseVersion || !releaseFileName || !releaseFileData) {
-      return triggerError('Please fill in all fields and select a file.');
+    if (!releaseName || !releaseVersion) {
+      return triggerError('App name and version are required.');
+    }
+    if (!releaseFileData && !releaseIpaFileData) {
+      return triggerError('Please attach at least one file (.apk or .ipa).');
     }
 
     setIsUploadingRelease(true);
@@ -588,20 +631,19 @@ const AdminDashboard = () => {
         name: releaseName,
         version: releaseVersion,
         description: releaseDesc,
+        // APK
         fileName: releaseFileName,
-        fileData: releaseFileData
+        fileData: releaseFileData,
+        // IPA
+        ipaFileName: releaseIpaFileName,
+        ipaFileData: releaseIpaFileData,
+        // Photo
+        photo: releasePhoto,
+        photoFileName: releasePhotoFileName
       });
       triggerSuccess(`App release "${releaseName}" uploaded successfully.`);
-      setReleaseName('');
-      setReleaseVersion('');
-      setReleaseDesc('');
-      setReleaseFileName('');
-      setReleaseFileData('');
+      resetReleaseForm();
       setShowReleaseForm(false);
-      
-      const fileInput = document.getElementById('releaseFile');
-      if (fileInput) fileInput.value = '';
-
       fetchAdminData();
     } catch (err) {
       triggerError(err.message);
@@ -2414,103 +2456,179 @@ const AdminDashboard = () => {
           <GlassCard>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>System Software & App Releases</h3>
+                <h3 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Download size={22} style={{ color: 'var(--primary-blue)' }} />
+                  App Releases Management
+                </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>
-                  Upload APKs, user manuals, and other utilities. Users can access these directly in the footer of all panels.
+                  Publish Android (.apk) and iOS (.ipa) builds. Uploaded releases appear on the public Download page.
                 </p>
               </div>
               {!showReleaseForm && (
-                <button 
+                <button
                   onClick={() => setShowReleaseForm(true)}
                   className="btn btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <Plus size={16} /> Upload New Release / File
+                  <Plus size={16} /> New Release
                 </button>
               )}
             </div>
 
+            {/* ── Upload Form ── */}
             {showReleaseForm && (
               <div style={{
                 background: 'var(--bg-primary)',
                 border: '1px solid var(--glass-border)',
-                borderRadius: '12px',
-                padding: '24px',
-                marginBottom: '28px'
+                borderRadius: '16px',
+                padding: '28px',
+                marginBottom: '32px'
               }}>
-                <h4 style={{ fontSize: '1.1rem', marginBottom: '16px', fontWeight: 700 }}>
-                  Upload New File/Attachment
+                <h4 style={{ fontSize: '1.1rem', marginBottom: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  📦 Upload New App Release
                 </h4>
                 <form onSubmit={handleSaveRelease}>
+                  {/* Row 1: Name + Version */}
                   <div className="grid-2" style={{ gap: '16px', marginBottom: '16px' }}>
                     <div className="form-group">
-                      <label className="form-label">Release/File Name *</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
+                      <label className="form-label">App Name *</label>
+                      <input
+                        type="text"
+                        className="form-control"
                         value={releaseName}
                         onChange={e => setReleaseName(e.target.value)}
-                        placeholder="E.g. MedTrack Android App, Setup Guide PDF"
+                        placeholder="E.g. ACET MedTrack"
                         required
                       />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Version / Tag *</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
+                      <label className="form-label">Version *</label>
+                      <input
+                        type="text"
+                        className="form-control"
                         value={releaseVersion}
                         onChange={e => setReleaseVersion(e.target.value)}
-                        placeholder="E.g. v1.0.4, 2026-Q2, 1.0"
+                        placeholder="E.g. v2.1.0"
                         required
                       />
                     </div>
                   </div>
 
+                  {/* Description */}
                   <div className="form-group" style={{ marginBottom: '16px' }}>
-                    <label className="form-label">File Description</label>
-                    <textarea 
-                      className="form-control" 
+                    <label className="form-label">Description</label>
+                    <textarea
+                      className="form-control"
                       value={releaseDesc}
                       onChange={e => setReleaseDesc(e.target.value)}
-                      placeholder="Explain features, fixes, or instructions..."
-                      rows="2"
+                      placeholder="What's new in this release? Bug fixes, new features..."
+                      rows="3"
                     ></textarea>
                   </div>
 
-                  <div className="form-group" style={{ marginBottom: '24px' }}>
-                    <label className="form-label">Select File * (Only .apk files supported)</label>
-                    <input 
-                      type="file" 
-                      id="releaseFile"
-                      className="form-control" 
-                      onChange={handleReleaseFileChange}
-                      required
-                      accept=".apk"
+                  {/* Cover Photo */}
+                  <div style={{
+                    background: 'rgba(59, 130, 246, 0.04)',
+                    border: '1px dashed var(--primary-blue)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    marginBottom: '16px'
+                  }}>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                      <Image size={14} style={{ color: 'var(--primary-blue)' }} /> App Cover Photo (from Gallery)
+                    </label>
+                    <input
+                      type="file"
+                      id="releasePhotoFile"
+                      className="form-control"
+                      onChange={handleReleasePhotoChange}
+                      accept="image/*"
                     />
-                    {releaseFileName && (
-                      <span style={{ fontSize: '0.8rem', color: 'var(--accent-teal)', display: 'block', marginTop: '6px', fontWeight: 600 }}>
-                        Selected file: {releaseFileName}
-                      </span>
+                    {releasePhoto && (
+                      <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img
+                          src={releasePhoto}
+                          alt="Cover preview"
+                          style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '10px', border: '2px solid var(--glass-border)' }}
+                        />
+                        <div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--success-green)' }}>✅ Photo selected</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{releasePhotoFileName}</div>
+                        </div>
+                      </div>
                     )}
                   </div>
 
+                  {/* File inputs */}
+                  <div className="grid-2" style={{ gap: '16px', marginBottom: '24px' }}>
+                    <div style={{
+                      background: 'rgba(16, 185, 129, 0.04)',
+                      border: '1px dashed var(--success-green)',
+                      borderRadius: '12px',
+                      padding: '16px'
+                    }}>
+                      <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                        🤖 Android APK File
+                      </label>
+                      <input
+                        type="file"
+                        id="releaseFile"
+                        className="form-control"
+                        onChange={handleReleaseFileChange}
+                        accept=".apk"
+                      />
+                      {releaseFileName && (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--success-green)', marginTop: '8px', fontWeight: 600 }}>
+                          ✅ {releaseFileName}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{
+                      background: 'rgba(139, 92, 246, 0.04)',
+                      border: '1px dashed #8b5cf6',
+                      borderRadius: '12px',
+                      padding: '16px'
+                    }}>
+                      <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                        🍏 iOS IPA File
+                      </label>
+                      <input
+                        type="file"
+                        id="releaseIpaFile"
+                        className="form-control"
+                        onChange={handleIpaFileChange}
+                        accept=".ipa"
+                      />
+                      {releaseIpaFileName && (
+                        <div style={{ fontSize: '0.78rem', color: '#8b5cf6', marginTop: '8px', fontWeight: 600 }}>
+                          ✅ {releaseIpaFileName}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isUploadingRelease && (
+                    <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'rgba(59,130,246,0.08)', borderRadius: '8px', border: '1px solid var(--primary-blue)', fontSize: '0.85rem', color: 'var(--primary-blue)', fontWeight: 600 }}>
+                      ⏳ Uploading files... This may take a moment for large files.
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', gap: '12px' }}>
-                    <button type="submit" className="btn btn-primary" style={{ padding: '10px 20px' }} disabled={isUploadingRelease}>
-                      {isUploadingRelease ? 'Uploading & Processing...' : 'Upload File'}
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      disabled={isUploadingRelease}
+                    >
+                      <Download size={16} />
+                      {isUploadingRelease ? 'Publishing Release...' : 'Publish Release'}
                     </button>
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        setShowReleaseForm(false);
-                        setReleaseName('');
-                        setReleaseVersion('');
-                        setReleaseDesc('');
-                        setReleaseFileName('');
-                        setReleaseFileData('');
-                      }} 
+                    <button
+                      type="button"
+                      onClick={() => { resetReleaseForm(); setShowReleaseForm(false); }}
                       className="btn btn-secondary"
-                      style={{ padding: '10px 20px' }}
+                      style={{ padding: '12px 20px' }}
                     >
                       Cancel
                     </button>
@@ -2519,85 +2637,141 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '0.9rem',
-                textAlign: 'left'
+            {/* ── Releases Cards Grid ── */}
+            {releases.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px 20px',
+                color: 'var(--text-secondary)'
               }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)' }}>
-                    <th style={{ padding: '12px 8px' }}>Release Details</th>
-                    <th style={{ padding: '12px 8px' }}>Original Filename</th>
-                    <th style={{ padding: '12px 8px' }}>File Size</th>
-                    <th style={{ padding: '12px 8px' }}>Uploaded At</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'center' }}>Downloads</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'right' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {releases.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" style={{ padding: '24px 8px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                        No releases uploaded yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    releases.map(rel => (
-                      <tr key={rel._id || rel.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                        <td style={{ padding: '14px 8px' }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{rel.name}</div>
-                          <span style={{
-                            background: 'var(--primary-blue-glow)',
-                            color: 'var(--primary-blue)',
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            marginRight: '8px'
-                          }}>
-                            {rel.version}
-                          </span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{rel.description}</span>
-                        </td>
-                        <td style={{ padding: '14px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>{rel.fileName}</td>
-                        <td style={{ padding: '14px 8px' }}>
-                          {rel.fileSize > 1024 * 1024 
-                            ? `${(rel.fileSize / (1024 * 1024)).toFixed(2)} MB` 
-                            : `${(rel.fileSize / 1024).toFixed(1)} KB`
-                          }
-                        </td>
-                        <td style={{ padding: '14px 8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          {rel.uploadedAt?.replace('T', ' ').split('.')[0]}
-                        </td>
-                        <td style={{ padding: '14px 8px', textAlign: 'center', fontWeight: 700, color: 'var(--accent-teal)' }}>
-                          {rel.downloadCount || 0}
-                        </td>
-                        <td style={{ padding: '14px 8px', textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '8px' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📦</div>
+                <div style={{ fontWeight: 600, fontSize: '1.05rem', marginBottom: '6px' }}>No releases yet</div>
+                <div style={{ fontSize: '0.85rem' }}>Click "New Release" to publish your first app build.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                {releases.map(rel => {
+                  const hasApk = rel.filePath && rel.fileName;
+                  const hasIpa = rel.ipaFilePath && rel.ipaFileName;
+                  const platformLabel = rel.platform === 'both' ? '🤖 + 🍏' : rel.platform === 'ios' ? '🍏 iOS' : '🤖 Android';
+                  const platformColor = rel.platform === 'both' ? '#f59e0b' : rel.platform === 'ios' ? '#8b5cf6' : '#10b981';
+                  return (
+                    <div
+                      key={rel._id || rel.id}
+                      style={{
+                        background: 'var(--bg-primary)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.3)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+                    >
+                      {/* Cover Photo */}
+                      <div style={{ position: 'relative', height: '160px', background: 'linear-gradient(135deg, #0f2057 0%, #1a3a8a 100%)', overflow: 'hidden' }}>
+                        {rel.photo ? (
+                          <img
+                            src={rel.photo.startsWith('/uploads') ? `${API_BASE_URL.replace('/api', '')}${rel.photo}` : rel.photo}
+                            alt={rel.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
+                          />
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '3.5rem' }}>📱</div>
+                        )}
+                        <div style={{
+                          position: 'absolute', top: '10px', right: '10px',
+                          background: platformColor + '22',
+                          border: `1px solid ${platformColor}`,
+                          color: platformColor,
+                          fontSize: '0.72rem', fontWeight: 700,
+                          padding: '3px 10px', borderRadius: '20px',
+                          backdropFilter: 'blur(6px)'
+                        }}>{platformLabel}</div>
+                        <div style={{
+                          position: 'absolute', bottom: '10px', left: '10px',
+                          background: 'rgba(0,0,0,0.55)',
+                          color: 'white',
+                          fontSize: '0.72rem', fontWeight: 700,
+                          padding: '3px 10px', borderRadius: '20px',
+                          backdropFilter: 'blur(6px)'
+                        }}>v{rel.version}</div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div style={{ padding: '16px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '6px', color: 'var(--text-primary)' }}>{rel.name}</div>
+                        {rel.description && (
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>
+                            {rel.description.length > 100 ? rel.description.slice(0, 100) + '…' : rel.description}
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-light)', marginBottom: '14px' }}>
+                          <span>📅 {rel.uploadedAt?.split('T')[0]}</span>
+                          <span>⬇️ APK: {rel.downloadCount || 0} · IPA: {rel.ipaDownloadCount || 0}</span>
+                        </div>
+
+                        {/* File sizes */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                          {hasApk && (
+                            <span style={{ fontSize: '0.72rem', background: 'rgba(16,185,129,0.1)', color: 'var(--success-green)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                              APK {rel.fileSize > 1024*1024 ? `${(rel.fileSize/1024/1024).toFixed(1)}MB` : `${(rel.fileSize/1024).toFixed(0)}KB`}
+                            </span>
+                          )}
+                          {hasIpa && (
+                            <span style={{ fontSize: '0.72rem', background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                              IPA {rel.ipaFileSize > 1024*1024 ? `${(rel.ipaFileSize/1024/1024).toFixed(1)}MB` : `${(rel.ipaFileSize/1024).toFixed(0)}KB`}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Download + Delete */}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {hasApk && (
                             <a
                               href={`${API_BASE_URL}/releases/${rel._id || rel.id}/download`}
-                              className="btn btn-secondary"
-                              style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--success-green)', textDecoration: 'none' }}
+                              style={{
+                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                padding: '8px', borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700,
+                                background: 'rgba(16,185,129,0.1)', color: 'var(--success-green)', border: '1px solid rgba(16,185,129,0.3)',
+                                transition: 'all 0.2s'
+                              }}
                             >
-                              Test Down
+                              🤖 APK
                             </a>
-                            <button
-                              onClick={() => handleDeleteRelease(rel._id || rel.id, rel.name)}
-                              className="btn btn-secondary"
-                              style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--danger-red)', borderColor: 'rgba(239, 68, 68, 0.15)' }}
+                          )}
+                          {hasIpa && (
+                            <a
+                              href={`${API_BASE_URL}/releases/${rel._id || rel.id}/download-ipa`}
+                              style={{
+                                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                padding: '8px', borderRadius: '8px', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 700,
+                                background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.3)',
+                                transition: 'all 0.2s'
+                              }}
                             >
-                              <Trash2 size={12} /> Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                              🍏 IPA
+                            </a>
+                          )}
+                          <button
+                            onClick={() => handleDeleteRelease(rel._id || rel.id, rel.name)}
+                            style={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                              padding: '8px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer',
+                              background: 'rgba(239,68,68,0.08)', color: 'var(--danger-red)', border: '1px solid rgba(239,68,68,0.2)',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </GlassCard>
         )}
 

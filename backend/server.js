@@ -25,12 +25,15 @@ const app = express();
 // Connect to Database (handles Mongo and fallback fileDb)
 connectDB();
 
-// Ensure uploads/releases folder exists on startup
+// Ensure uploads/releases subfolders exist on startup
 const fs = require('fs');
 const uploadsDir = path.join(__dirname, 'uploads/releases');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const apkDir = path.join(__dirname, 'uploads/releases/apk');
+const ipaDir = path.join(__dirname, 'uploads/releases/ipa');
+const photosDir = path.join(__dirname, 'uploads/releases/photos');
+[uploadsDir, apkDir, ipaDir, photosDir].forEach(d => {
+  if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+});
 
 // Backup default data at startup for Factory Reset functionality
 const dataDir = path.join(__dirname, 'data');

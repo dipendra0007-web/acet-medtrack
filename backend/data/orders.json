@@ -77,7 +77,7 @@
   {
     "_id": "sniwit3pisbfftc143hjh8",
     "createdAt": "2026-06-24T07:35:57.005Z",
-    "updatedAt": "2026-06-24T07:35:57.005Z",
+    "updatedAt": "2026-06-24T10:25:48.692Z",
     "patientId": "voavm01vmp7i9tx1qz7ho",
     "patientName": "Patient One",
     "items": [
@@ -95,7 +95,13 @@
     "address": "Yelahanka, Bangalore",
     "floorName": "Block A, Floor 2, Room 205",
     "coordinates": "13.11650, 77.57550",
-    "status": "Received"
+    "status": "Out for Delivery",
+    "driverName": "GFFG",
+    "driverPhone": "FGH",
+    "deliveryStreet": "GFH",
+    "deliveryFloor": "FGH",
+    "deliveryArea": "FGD",
+    "deliveryLandmark": "FGDSH"
   },
   {
     "_id": "kemda5cc4gd59nrqy7aw",

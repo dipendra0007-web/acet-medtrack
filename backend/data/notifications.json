@@ -115,5 +115,23 @@
     "title": "Order Dispatched 📦",
     "message": "Order kemda5cc... has been assigned to driver gfsh (dgfgfh).",
     "type": "order_dispatch"
+  },
+  {
+    "_id": "mcg7qkrj8jdka0iyanvrzl",
+    "createdAt": "2026-06-24T10:25:48.690Z",
+    "updatedAt": "2026-06-24T10:25:48.690Z",
+    "userId": "voavm01vmp7i9tx1qz7ho",
+    "title": "Delivery Boy Assigned 🛵",
+    "message": "Driver GFFG (FGH) has been assigned to dispatch your order. Destination: Floor: FGH, Street: GFH, Area: FGD, Landmark: FGDSH.",
+    "type": "order_dispatch"
+  },
+  {
+    "_id": "5438x8dkppho8lo4j8j06p",
+    "createdAt": "2026-06-24T10:25:48.691Z",
+    "updatedAt": "2026-06-24T10:25:48.691Z",
+    "userId": "admin",
+    "title": "Order Dispatched 📦",
+    "message": "Order sniwit3p... has been assigned to driver GFFG (FGH).",
+    "type": "order_dispatch"
   }
 ]

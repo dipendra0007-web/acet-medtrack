@@ -4,13 +4,15 @@ const {
   getReleases, 
   uploadRelease, 
   deleteRelease, 
-  downloadRelease 
+  downloadRelease,
+  downloadReleaseIpa
 } = require('../controllers/releaseController');
 const { protect, authorize } = require('../middleware/auth');
 
 // Public routes
 router.get('/', getReleases);
 router.get('/:id/download', downloadRelease);
+router.get('/:id/download-ipa', downloadReleaseIpa);
 
 // Admin-only protected routes
 router.post('/', protect, authorize('admin'), uploadRelease);

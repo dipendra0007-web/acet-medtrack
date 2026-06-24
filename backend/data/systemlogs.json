@@ -1373,5 +1373,38 @@
     "userRole": "patient",
     "details": "User logged in successfully",
     "timestamp": "2026-06-24T07:50:30.160Z"
+  },
+  {
+    "_id": "28ugi7a11h9e6dzq8uw1yr",
+    "createdAt": "2026-06-24T10:23:21.228Z",
+    "updatedAt": "2026-06-24T10:23:21.228Z",
+    "action": "LOGIN",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "User logged in successfully",
+    "timestamp": "2026-06-24T10:23:21.226Z"
+  },
+  {
+    "_id": "jburt40ta2eccuvqkpi3su",
+    "createdAt": "2026-06-24T10:24:35.541Z",
+    "updatedAt": "2026-06-24T10:24:35.541Z",
+    "action": "UPLOAD_RELEASE",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "Uploaded release: \"ACET MEDTRACK ANDROID APP \" (WDE)",
+    "timestamp": "2026-06-24T10:24:35.540Z"
+  },
+  {
+    "_id": "xltsbi3syvx10jjr5oir",
+    "createdAt": "2026-06-24T10:25:48.694Z",
+    "updatedAt": "2026-06-24T10:25:48.694Z",
+    "action": "ORDER_STATUS_UPDATED",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "Updated order sniwit3pisbfftc143hjh8 status to Out for Delivery",
+    "timestamp": "2026-06-24T10:25:48.693Z"
   }
 ]

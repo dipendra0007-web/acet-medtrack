@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Shop from './pages/Shop';
+import AppDownload from './pages/AppDownload';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/shop" element={<Shop />} />
+                <Route path="/download" element={<AppDownload />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/patient" element={<Dashboard />} />
                 <Route path="/doctor" element={<Dashboard />} />
