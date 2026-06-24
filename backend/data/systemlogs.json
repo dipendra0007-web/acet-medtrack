@@ -1406,5 +1406,71 @@
     "userRole": "admin",
     "details": "Updated order sniwit3pisbfftc143hjh8 status to Out for Delivery",
     "timestamp": "2026-06-24T10:25:48.693Z"
+  },
+  {
+    "_id": "j1yxlsdl1rkhjym6447bn",
+    "createdAt": "2026-06-24T10:35:02.578Z",
+    "updatedAt": "2026-06-24T10:35:02.578Z",
+    "action": "LOGIN",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "User logged in successfully",
+    "timestamp": "2026-06-24T10:35:02.577Z"
+  },
+  {
+    "_id": "ijgu5t73xii6ftiz8bgmdk",
+    "createdAt": "2026-06-24T10:36:09.978Z",
+    "updatedAt": "2026-06-24T10:36:09.978Z",
+    "action": "REGISTER",
+    "userId": "6zp9of5vugt7c0p7wgxenp",
+    "userName": "dipu",
+    "userRole": "patient",
+    "details": "User registered successfully. Approved: true",
+    "timestamp": "2026-06-24T10:36:09.977Z"
+  },
+  {
+    "_id": "b08muvz0e9e91ow51rbcs",
+    "createdAt": "2026-06-24T10:41:49.429Z",
+    "updatedAt": "2026-06-24T10:41:49.429Z",
+    "action": "LOGIN",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "User logged in successfully",
+    "timestamp": "2026-06-24T10:41:49.429Z"
+  },
+  {
+    "_id": "o99llsujt3c80vxxdr26o",
+    "createdAt": "2026-06-24T10:42:53.404Z",
+    "updatedAt": "2026-06-24T10:42:53.404Z",
+    "action": "DELETE_RELEASE",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "Deleted release: \"ACET MEDTRACK ANDROID APP \" (WDE)",
+    "timestamp": "2026-06-24T10:42:53.403Z"
+  },
+  {
+    "_id": "l5xwb4awv0df9ueo1frnjw",
+    "createdAt": "2026-06-24T10:43:09.899Z",
+    "updatedAt": "2026-06-24T10:43:09.899Z",
+    "action": "UPLOAD_RELEASE",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "Uploaded release: \"erf\" (dfsg)",
+    "timestamp": "2026-06-24T10:43:09.898Z"
+  },
+  {
+    "_id": "obdd8124uhaprx7ikjrj6",
+    "createdAt": "2026-06-24T10:44:23.674Z",
+    "updatedAt": "2026-06-24T10:44:23.674Z",
+    "action": "LOGIN",
+    "userId": "rqd03hlck8xjoqtv7xhxc",
+    "userName": "Dipendra Upadhayay",
+    "userRole": "admin",
+    "details": "User logged in successfully",
+    "timestamp": "2026-06-24T10:44:23.672Z"
   }
 ]

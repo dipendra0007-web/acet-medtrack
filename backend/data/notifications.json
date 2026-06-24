@@ -133,5 +133,14 @@
     "title": "Order Dispatched 📦",
     "message": "Order sniwit3p... has been assigned to driver GFFG (FGH).",
     "type": "order_dispatch"
+  },
+  {
+    "_id": "9ugntmd58w4chnmvn8dx2",
+    "createdAt": "2026-06-24T10:40:59.248Z",
+    "updatedAt": "2026-06-24T10:40:59.248Z",
+    "userId": "admin",
+    "title": "New Support Ticket",
+    "message": "\"ghjkyadfghjsghj\" submitted a ticket: \"fsdg\"",
+    "type": "new_ticket"
   }
 ]

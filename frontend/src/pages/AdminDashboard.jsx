@@ -2310,7 +2310,7 @@ const AdminDashboard = () => {
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* Stats Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <div id="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
                 {[
                   { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString('en-IN')}`, sub: `${completedOrders.length} completed orders`, color: '#10b981', bg: 'rgba(16,185,129,0.08)', icon: '💰' },
                   { label: 'Pending Revenue', value: `₹${pendingRevenue.toLocaleString('en-IN')}`, sub: `${adminOrders.filter(o=>o.status==='pending').length} pending orders`, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', icon: '⏳' },
@@ -2372,7 +2372,7 @@ const AdminDashboard = () => {
               </GlassCard>
 
               {/* 2-col: Category Breakdown + Recent Transactions */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '20px' }}>
+              <div id="admin-revenue-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '20px' }}>
                 {/* Category Breakdown */}
                 <GlassCard>
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>🛒 Revenue by Category</h3>

@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import MobileNav from './components/MobileNav';
 import AlarmNotification from './components/AlarmNotification';
 
 // Import Pages
@@ -55,6 +56,9 @@ function App() {
             
             {/* Global Medicine Alarms Engine */}
             <AlarmNotification />
+            
+            {/* Mobile Bottom Tab Navigation */}
+            <MobileNav />
           </div>
         </Router>
       </AuthProvider>

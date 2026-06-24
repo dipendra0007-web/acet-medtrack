@@ -383,7 +383,7 @@ const Shop = () => {
                 <p style={{ color: 'var(--text-secondary)' }}>No items in the store database yet. Ask an admin to add supplies.</p>
               </div>
             ) : (
-              <div className="grid-3" style={{ gridTemplateColumns: showCart ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '24px' }}>
+              <div className="grid-3" id="shop-products-grid" style={{ gridTemplateColumns: showCart ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '24px' }}>
                 {items.map((item) => (
                   <GlassCard 
                     key={item._id} 

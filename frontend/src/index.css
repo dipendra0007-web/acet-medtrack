@@ -313,3 +313,42 @@ button, input, select, textarea {
   }
 }
 
+/* Responsive Grid Overrides and Mobile Navigation Spacing */
+@media (max-width: 1024px) {
+  body {
+    padding-bottom: 84px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  #shop-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  #admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  #admin-revenue-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  #shop-products-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #admin-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Optimize container paddings on very small mobile screens */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px !important;
+  }
+}
+
+

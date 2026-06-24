@@ -531,5 +531,35 @@
         }
       }
     }
+  },
+  {
+    "_id": "6zp9of5vugt7c0p7wgxenp",
+    "createdAt": "2026-06-24T10:36:09.975Z",
+    "updatedAt": "2026-06-24T10:36:09.975Z",
+    "name": "dipu",
+    "email": "redipu@gmail.com",
+    "password": "$2a$10$XlNbvOROPpxiN7UM.9eU4.o5CgU/a0zj2oQyI8M7JE1x4RxJVZ8oq",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
   }
 ]

@@ -31,5 +31,22 @@
     "message": "Hi admin, checking if the alarm sound can sync in real time when active.",
     "status": "pending",
     "replies": []
+  },
+  {
+    "_id": "52hb8u1fpsw3sd1jfczx8w",
+    "createdAt": "2026-06-24T10:40:59.247Z",
+    "updatedAt": "2026-06-24T10:42:13.105Z",
+    "name": "ghjkyadfghjsghj",
+    "email": "ds@gmail.com",
+    "subject": "fsdg",
+    "message": "adgf",
+    "status": "replied",
+    "replies": [
+      {
+        "sender": "admin",
+        "text": "thankyou",
+        "timestamp": "2026-06-24T10:42:13.101Z"
+      }
+    ]
   }
 ]
