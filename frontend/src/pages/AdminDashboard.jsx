@@ -4,8 +4,6 @@ import GlassCard from '../components/GlassCard';
 import { 
   Shield, Users, UserCheck, Calendar, Bell, FileText, Download, Trash2, Search, Check, X, AlertTriangle, Plus, Edit, Phone, Mail, MessageSquare, Image, Video, ShoppingBag, ShoppingCart, MapPin, Monitor, Truck, Navigation, Clock, Send, User, ArrowLeft
 } from 'lucide-react';
-import Presentation from './Presentation';
-
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
 
@@ -863,7 +861,6 @@ const AdminDashboard = () => {
             { id: 'revenue', name: 'Revenue & Earnings', icon: <span style={{fontSize:'14px'}}>💰</span> },
             { id: 'logs', name: 'System Audit Logs', icon: <FileText size={16} /> },
             { id: 'export', name: 'CSV Exporter', icon: <Download size={16} /> },
-            { id: 'presentation', name: 'Presentation Slideshow', icon: <Monitor size={16} /> },
             { id: 'releases', name: 'App Releases', icon: <Download size={16} /> },
             { id: 'messages', name: 'Get in Touch', icon: <MessageSquare size={16} /> },
             { id: 'reset', name: 'Factory Reset', icon: <span style={{fontSize:'14px'}}>🔄</span> }
@@ -1425,11 +1422,6 @@ const AdminDashboard = () => {
               </button>
             </GlassCard>
           </div>
-        )}
-
-        {/* Presentation Panel */}
-        {activeTab === 'presentation' && (
-          <Presentation />
         )}
 
         {/* Review Moderation Panel */}
