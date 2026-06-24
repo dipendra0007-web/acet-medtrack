@@ -1,0 +1,88 @@
+[
+  {
+    "_id": "okdigddlxw0k9u4oqz1zcn",
+    "createdAt": "2026-06-23T20:27:40.616Z",
+    "updatedAt": "2026-06-23T20:55:31.160Z",
+    "patientId": "xrkrs852zravh7aklx08ul",
+    "name": "Nims",
+    "dosage": "500mg",
+    "schedule": [
+      "13:59"
+    ],
+    "instruction": "dfcv",
+    "durationDays": 365,
+    "startDate": "2026-06-23",
+    "endDate": "2027-06-23",
+    "active": false,
+    "history": []
+  },
+  {
+    "_id": "3lohtdok36nkc41aezrai9",
+    "createdAt": "2026-06-23T20:52:08.143Z",
+    "updatedAt": "2026-06-23T20:53:56.912Z",
+    "patientId": "xrkrs852zravh7aklx08ul",
+    "name": "fg",
+    "dosage": "gf",
+    "schedule": [
+      "02:23"
+    ],
+    "instruction": "dssda",
+    "durationDays": 7,
+    "startDate": "2026-06-23",
+    "endDate": "2026-06-30",
+    "active": false,
+    "history": [
+      {
+        "date": "2026-06-24",
+        "time": "02:23",
+        "status": "missed"
+      }
+    ]
+  },
+  {
+    "_id": "smbsoa2swvk48sl3obaf93",
+    "createdAt": "2026-06-23T20:54:11.575Z",
+    "updatedAt": "2026-06-23T20:55:16.545Z",
+    "patientId": "xrkrs852zravh7aklx08ul",
+    "name": "dfgh",
+    "dosage": "dhg",
+    "schedule": [
+      "02:25"
+    ],
+    "instruction": "sdfds",
+    "durationDays": 7,
+    "startDate": "2026-06-23",
+    "endDate": "2026-06-30",
+    "active": true,
+    "history": [
+      {
+        "date": "2026-06-24",
+        "time": "02:25",
+        "status": "taken"
+      }
+    ]
+  },
+  {
+    "_id": "93oizyie3pu6gva6p0aol",
+    "createdAt": "2026-06-23T21:26:36.197Z",
+    "updatedAt": "2026-06-23T21:28:36.184Z",
+    "patientId": "xrkrs852zravh7aklx08ul",
+    "name": "gf",
+    "dosage": "sssssss",
+    "schedule": [
+      "02:58"
+    ],
+    "instruction": "fdg",
+    "durationDays": 7,
+    "startDate": "2026-06-23",
+    "endDate": "2026-06-30",
+    "active": true,
+    "history": [
+      {
+        "date": "2026-06-24",
+        "time": "02:58",
+        "status": "taken"
+      }
+    ]
+  }
+]

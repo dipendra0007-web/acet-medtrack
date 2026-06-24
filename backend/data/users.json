@@ -1,0 +1,318 @@
+[
+  {
+    "_id": "xrkrs852zravh7aklx08ul",
+    "createdAt": "2026-06-23T16:27:54.834Z",
+    "updatedAt": "2026-06-23T20:15:06.644Z",
+    "name": "fgddfg",
+    "email": "a@GMAIL.COM",
+    "password": "$2a$10$FuZ/Rtzlx/hgH79Pgg3PdOG9Em8HjROP3fqu/.BJAu65z2HlbKmXu",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "A-",
+      "allergies": [
+        "tgtf"
+      ],
+      "conditions": [
+        "fgfg"
+      ],
+      "emergencyContact": {
+        "name": "dfds",
+        "phone": "sgf",
+        "relation": "sfg"
+      },
+      "parentAccess": {
+        "username": "dipu8@gmail.com",
+        "passwordHash": "$2a$10$ZpfTK/b0lHY/6zVjDFUN.eoyH3R/DSLQw3dNBJgVoMMUHPJLS9/Wi",
+        "permissions": {
+          "medicalRecords": true,
+          "prescriptions": true,
+          "medicineSchedules": true,
+          "appointments": true
+        }
+      }
+    },
+    "photo": "data:image/jpeg;base64,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"
+  },
+  {
+    "_id": "csdollinxts4myju7wfurd",
+    "createdAt": "2026-06-23T16:34:33.079Z",
+    "updatedAt": "2026-06-23T16:36:03.174Z",
+    "name": "Dr. Ramesh",
+    "email": "ramesh@gmail.com",
+    "password": "$2a$10$bphavwhsNA1/Ftn.zK3HNeat0GH4NrfRPMaprcsiKYsmjEQeqWixq",
+    "role": "doctor",
+    "doctorApproved": true,
+    "doctorDetails": {
+      "specialization": "Cardiologist",
+      "experience": 10,
+      "clinicInfo": "Aditya Clinic, Bangalore",
+      "availability": [
+        {
+          "day": "Monday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Tuesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Wednesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Thursday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Friday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "_id": "bo4qf4pji9j88fbd3ksimv",
+    "createdAt": "2026-06-23T16:35:42.029Z",
+    "updatedAt": "2026-06-23T16:35:42.029Z",
+    "name": "System Admin",
+    "email": "admin@gmail.com",
+    "password": "$2a$10$AnGtahMWHDPc4ePpganJKODS3t5C6RRQDtZZ45CZFo6UGPBPnyvL6",
+    "role": "admin",
+    "doctorApproved": true
+  },
+  {
+    "_id": "rqd03hlck8xjoqtv7xhxc",
+    "createdAt": "2026-06-23T16:44:39.920Z",
+    "updatedAt": "2026-06-23T16:49:10.000Z",
+    "name": "Dipendra Upadhayay",
+    "email": "info.dipendraupadhayay.2005@gmail.com",
+    "password": "$2a$10$1KEBUISHGpa52hfAKLLJZuX0z171NnBZSFneBRsq6xR1a6yhT0Opa",
+    "role": "admin",
+    "doctorApproved": true
+  },
+  {
+    "_id": "whfsjwde9vbhjx7gzaflmo",
+    "createdAt": "2026-06-23T16:46:29.389Z",
+    "updatedAt": "2026-06-23T16:55:45.140Z",
+    "name": "raju",
+    "email": "raju@gmail.com",
+    "password": "$2a$10$0.mnGprlu5jHcxZUvrWtxOPZjPS46rHpj/hO7uCDh1HgYemZMjZ8S",
+    "role": "doctor",
+    "doctorApproved": true,
+    "doctorDetails": {
+      "specialization": "CaRDIOLOGIST",
+      "experience": 5,
+      "clinicInfo": "Victoria hospital",
+      "availability": [
+        {
+          "day": "Monday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Tuesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Wednesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Thursday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Friday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "_id": "juejigwxz7kery7p0o5ya7",
+    "createdAt": "2026-06-23T17:33:26.913Z",
+    "updatedAt": "2026-06-23T17:33:26.913Z",
+    "name": "DR MANISH",
+    "email": "MANISH1@GMAIL.COM",
+    "password": "$2a$10$.q6YCfMN/oLC8wtpb3mie.24.dgZAECBgxj4rioHLTmdw8AxEteOC",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
+  },
+  {
+    "_id": "ub793a44wq4i7qzs7ip1q",
+    "createdAt": "2026-06-23T17:34:34.460Z",
+    "updatedAt": "2026-06-23T17:35:19.397Z",
+    "name": "DR MANISH",
+    "email": "manish@gmail.com",
+    "password": "$2a$10$sytWG9HpsZsiTC9hJBJpruwOYqWSrV4kokQIzfkyiBJ05l/HdYev6",
+    "role": "doctor",
+    "doctorApproved": true,
+    "doctorDetails": {
+      "specialization": "Cardiologist",
+      "experience": 55,
+      "clinicInfo": "dfs",
+      "availability": [
+        {
+          "day": "Monday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Tuesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Wednesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Thursday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Friday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "_id": "ciojq60098puo90o1xapa",
+    "createdAt": "2026-06-24T04:13:15.610Z",
+    "updatedAt": "2026-06-24T04:13:15.610Z",
+    "name": "sysh",
+    "email": "sysh@gmail.com",
+    "password": "$2a$10$OpFYbweuVH6nROhx8aUwzeqoTIjXFredXkgIkh5dTJlQTjuxXkuxO",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "_id": "uri7cegago4b8yilrxqwd",
+    "createdAt": "2026-06-23T17:24:36.404Z",
+    "updatedAt": "2026-06-23T17:25:40.585Z",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "rating": 5,
+    "comment": "This platform is absolutely amazing! ACET students did a wonderful job.",
+    "approved": true
+  }
+]

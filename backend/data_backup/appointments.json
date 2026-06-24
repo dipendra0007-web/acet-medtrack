@@ -1,0 +1,28 @@
+[
+  {
+    "_id": "nm0u2cz489fpbi6p0xl3cf",
+    "createdAt": "2026-06-23T16:45:00.588Z",
+    "updatedAt": "2026-06-23T16:45:00.588Z",
+    "patientId": "rqd03hlck8xjoqtv7xhxc",
+    "patientName": "Dipendra Upadhayay",
+    "doctorId": "csdollinxts4myju7wfurd",
+    "doctorName": "Dr. Ramesh",
+    "date": "2026-06-23",
+    "timeSlot": "09:00",
+    "notes": "",
+    "status": "pending"
+  },
+  {
+    "_id": "arcv5y431k1j6fruenhjo",
+    "createdAt": "2026-06-23T17:37:18.549Z",
+    "updatedAt": "2026-06-23T17:37:18.549Z",
+    "patientId": "xrkrs852zravh7aklx08ul",
+    "patientName": "fgddfg",
+    "doctorId": "ub793a44wq4i7qzs7ip1q",
+    "doctorName": "DR MANISH",
+    "date": "2026-06-23",
+    "timeSlot": "09:00",
+    "notes": "dgksufhijklfghilu",
+    "status": "pending"
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "7864380p74xdcdvdrj587u",
+    "createdAt": "2026-06-23T21:33:21.336Z",
+    "updatedAt": "2026-06-23T21:33:21.336Z",
+    "userId": "admin",
+    "title": "New Support Ticket",
+    "message": "\"Praveen Kumar\" submitted a ticket: \"Alarm scheduling feedback\"",
+    "type": "new_ticket"
+  },
+  {
+    "_id": "0fb19iq5lczj769phdnfgaa",
+    "createdAt": "2026-06-23T21:34:40.828Z",
+    "updatedAt": "2026-06-23T21:34:40.828Z",
+    "userId": "admin",
+    "title": "New Support Ticket",
+    "message": "\"cx\" submitted a ticket: \"General Inquiry from Landing Page\"",
+    "type": "new_ticket"
+  },
+  {
+    "_id": "m7lvw2izw1kk3hk8o678q",
+    "createdAt": "2026-06-23T21:37:07.481Z",
+    "updatedAt": "2026-06-23T21:37:07.481Z",
+    "userId": "admin",
+    "title": "New Support Ticket",
+    "message": "\"Praveen Support Test\" submitted a ticket: \"Audible Alarm Check\"",
+    "type": "new_ticket"
+  }
+]
