@@ -26,6 +26,12 @@ const Shop = () => {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [successOrderDetails, setSuccessOrderDetails] = useState(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showGpsSearch, setShowGpsSearch] = useState(false);
+
+  const mapRef = React.useRef(null);
+  const markerRef = React.useRef(null);
+
   // Leaflet CDN injection state
   const [leafletLoaded, setLeafletLoaded] = useState(false);
 
@@ -61,6 +67,7 @@ const Shop = () => {
     const defaultLng = 77.5755;
 
     let map;
+    let marker;
     try {
       map = window.L.map('checkout-map').setView([defaultLat, defaultLng], 14);
 
@@ -68,7 +75,11 @@ const Shop = () => {
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
-      let marker = window.L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+      marker = window.L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+      
+      mapRef.current = map;
+      markerRef.current = marker;
+
       setCoordinates(`${defaultLat.toFixed(5)}, ${defaultLng.toFixed(5)}`);
 
       marker.on('dragend', function (event) {
@@ -87,9 +98,80 @@ const Shop = () => {
     return () => {
       if (map) {
         map.remove();
+        mapRef.current = null;
+        markerRef.current = null;
       }
     };
   }, [leafletLoaded, showCheckout]);
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCoordinates(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        if (mapRef.current && markerRef.current) {
+          mapRef.current.setView([latitude, longitude], 16);
+          markerRef.current.setLatLng([latitude, longitude]);
+        }
+      },
+      (err) => {
+        alert("Unable to retrieve location. Please permit location access.");
+      }
+    );
+  };
+
+  const parseGoogleMapsUrl = (url) => {
+    // Check @lat,lng pattern
+    const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (atMatch) {
+      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+    }
+    // Check q=lat,lng or query=lat,lng pattern
+    const qMatch = url.match(/[?&]q(?:uery)?=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (qMatch) {
+      return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+    }
+    return null;
+  };
+
+  const handleGpsSearch = async () => {
+    if (!searchQuery) return;
+
+    const parsedCoords = parseGoogleMapsUrl(searchQuery);
+    if (parsedCoords) {
+      const { lat, lng } = parsedCoords;
+      setCoordinates(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      if (mapRef.current && markerRef.current) {
+        mapRef.current.setView([lat, lng], 16);
+        markerRef.current.setLatLng([lat, lng]);
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setCoordinates(`${lat.toFixed(5)}, ${lon.toFixed(5)}`);
+        if (mapRef.current && markerRef.current) {
+          mapRef.current.setView([lat, lon], 16);
+          markerRef.current.setLatLng([lat, lon]);
+        }
+      } else {
+        alert("Location not found. Try typing a more specific address or coordinates.");
+      }
+    } catch (err) {
+      console.error("Geocoding failed:", err);
+      alert("Search failed. Please try again.");
+    }
+  };
+
 
   const fetchShopCatalog = async () => {
     try {
@@ -468,6 +550,65 @@ const Shop = () => {
                             required 
                           />
                         </div>
+
+                        {/* Location selectors */}
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={handleUseMyLocation}
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: '0.8rem', 
+                              flexGrow: 1, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              gap: '4px',
+                              borderRadius: '6px'
+                            }}
+                          >
+                            📍 Use My Location
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setShowGpsSearch(!showGpsSearch)}
+                            style={{ 
+                              padding: '8px 12px', 
+                              fontSize: '0.8rem', 
+                              flexGrow: 1, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center',
+                              gap: '4px',
+                              borderRadius: '6px'
+                            }}
+                          >
+                            🔍 Search / Paste Google Maps Link
+                          </button>
+                        </div>
+
+                        {showGpsSearch && (
+                          <div className="form-group animate-fade-in-up" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                            <input 
+                              type="text" 
+                              className="form-control" 
+                              placeholder="Type address or paste Google Maps URL..." 
+                              value={searchQuery} 
+                              onChange={e => setSearchQuery(e.target.value)} 
+                              style={{ fontSize: '0.82rem', flexGrow: 1 }}
+                            />
+                            <button 
+                              type="button" 
+                              onClick={handleGpsSearch} 
+                              className="btn btn-primary"
+                              style={{ padding: '8px 14px', fontSize: '0.82rem' }}
+                            >
+                              Go
+                            </button>
+                          </div>
+                        )}
 
                         {/* Leaflet Pin Map Selector */}
                         <div className="form-group">

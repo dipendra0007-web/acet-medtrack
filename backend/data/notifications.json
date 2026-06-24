@@ -27,22 +27,93 @@
     "type": "new_ticket"
   },
   {
-    "_id": "xmui9agaliss5nd50fwf3",
-    "createdAt": "2026-06-23T21:48:25.913Z",
-    "updatedAt": "2026-06-23T21:48:25.913Z",
-    "userId": "admin",
-    "title": "New Support Ticket",
-    "message": "\"Praveen Support Test\" submitted a ticket: \"Audible Alarm Check\"",
-    "type": "new_ticket"
+    "_id": "lqxx22lynvf0irsmfy132q6",
+    "createdAt": "2026-06-24T07:02:41.575Z",
+    "updatedAt": "2026-06-24T07:02:41.575Z",
+    "userId": "tbhhwjou7nlfv5yswlgwa",
+    "title": "Account Approved 🎓",
+    "message": "Congratulations! Your doctor profile registration has been approved. You can now access the Doctor Panel.",
+    "type": "approval"
   },
   {
-    "_id": "16lzat5uokfum72gyyef3n",
-    "createdAt": "2026-06-23T21:51:20.184Z",
-    "updatedAt": "2026-06-23T21:55:38.264Z",
+    "_id": "89l6irpa2utprtcbouwz1c",
+    "createdAt": "2026-06-24T07:02:41.576Z",
+    "updatedAt": "2026-06-24T07:02:41.576Z",
     "userId": "admin",
-    "title": "New Support Ticket",
-    "message": "\"fg\" submitted a ticket: \"gf\"",
-    "type": "new_ticket",
-    "isRead": true
+    "title": "Doctor Approved",
+    "message": "Dr. Dipendra Upadhayay has been approved and added to the medical registry.",
+    "type": "approval"
+  },
+  {
+    "_id": "7wuhvfdex554j6d6gd2jml",
+    "createdAt": "2026-06-24T07:14:29.033Z",
+    "updatedAt": "2026-06-24T07:14:29.033Z",
+    "userId": "par8rwplhws9xeq68aeb",
+    "title": "Account Approved 🎓",
+    "message": "Congratulations! Your doctor profile registration has been approved. You can now access the Doctor Panel.",
+    "type": "approval"
+  },
+  {
+    "_id": "mitixxz6vmq5h1bce9ior4",
+    "createdAt": "2026-06-24T07:14:29.034Z",
+    "updatedAt": "2026-06-24T07:14:29.034Z",
+    "userId": "admin",
+    "title": "Doctor Approved",
+    "message": "Dr. Test Doctor has been approved and added to the medical registry.",
+    "type": "approval"
+  },
+  {
+    "_id": "7gihlwzgjt8vh2hcejtf6o",
+    "createdAt": "2026-06-24T07:35:57.006Z",
+    "updatedAt": "2026-06-24T07:35:57.006Z",
+    "userId": "voavm01vmp7i9tx1qz7ho",
+    "title": "Order Placed! 🛒",
+    "message": "Your order #sniwit3p... has been received and is pending dispatch.",
+    "type": "new_order"
+  },
+  {
+    "_id": "40tha0mv0si47avc3vaodo",
+    "createdAt": "2026-06-24T07:35:57.007Z",
+    "updatedAt": "2026-06-24T07:35:57.007Z",
+    "userId": "admin",
+    "title": "New Pharmacy Order 📥",
+    "message": "New order #sniwit3p... placed by Patient One totaling ₹2899.",
+    "type": "new_order"
+  },
+  {
+    "_id": "88988m0vguaqna46fzga2l",
+    "createdAt": "2026-06-24T07:42:30.057Z",
+    "updatedAt": "2026-06-24T07:42:30.057Z",
+    "userId": "44tyf4i6vojcnqu128vv9i",
+    "title": "Order Placed! 🛒",
+    "message": "Your order #kemda5cc... has been received and is pending dispatch.",
+    "type": "new_order"
+  },
+  {
+    "_id": "frnrrbfkqeujp39qz188o",
+    "createdAt": "2026-06-24T07:42:30.058Z",
+    "updatedAt": "2026-06-24T07:42:30.058Z",
+    "userId": "admin",
+    "title": "New Pharmacy Order 📥",
+    "message": "New order #kemda5cc... placed by fghddfgh totaling ₹2899.",
+    "type": "new_order"
+  },
+  {
+    "_id": "hny92jj6r80gqiqi9jg00v",
+    "createdAt": "2026-06-24T07:45:57.233Z",
+    "updatedAt": "2026-06-24T07:45:57.233Z",
+    "userId": "44tyf4i6vojcnqu128vv9i",
+    "title": "Delivery Boy Assigned 🛵",
+    "message": "Driver gfsh (dgfgfh) has been assigned to dispatch your order. Destination: Floor: xcv, Street: vfdxg, Area: xcvz, Landmark: cxvhttps://www.google.com/maps/search/?api=1&query=13.17125%2C%2077.52487.",
+    "type": "order_dispatch"
+  },
+  {
+    "_id": "0i5cfc40mya8osaa2kbr3q",
+    "createdAt": "2026-06-24T07:45:57.235Z",
+    "updatedAt": "2026-06-24T07:45:57.235Z",
+    "userId": "admin",
+    "title": "Order Dispatched 📦",
+    "message": "Order kemda5cc... has been assigned to driver gfsh (dgfgfh).",
+    "type": "order_dispatch"
   }
 ]

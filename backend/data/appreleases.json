@@ -1,15 +1,1 @@
-[
-  {
-    "_id": "i23mvweai5os4w8cgtwqk",
-    "createdAt": "2026-06-23T21:22:03.186Z",
-    "updatedAt": "2026-06-23T21:52:45.564Z",
-    "name": "ACET MedTrack Android App",
-    "version": "v1.0.2",
-    "description": "Official stable Android mobile application (.apk) bundle for patients and doctors.",
-    "fileName": "dummy_app.apk",
-    "filePath": "/uploads/releases/1782249723186-dummy_app.apk",
-    "fileSize": 122,
-    "downloadCount": 3,
-    "uploadedAt": "2026-06-23T21:22:03.186Z"
-  }
-]
+[]

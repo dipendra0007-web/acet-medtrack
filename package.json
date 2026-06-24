@@ -2,12 +2,16 @@
   "name": "acfet-medtrack",
   "version": "1.0.0",
   "description": "ACFET MEDTRACK Full-Stack Healthcare Management Portal",
-  "main": "index.js",
+  "main": "backend/server.js",
   "scripts": {
+    "start": "node backend/server.js",
     "server": "npm run dev --prefix backend",
     "client": "npm run dev --prefix frontend",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "npm install --prefix backend && npm install --production=false --prefix frontend && npm run build --prefix frontend"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

@@ -302,6 +302,10 @@ const Navbar = () => {
 
       {/* Inject responsive CSS stylesheet override directly on the header tag */}
       <style>{`
+        @media (max-width: 767px) {
+          .desktop-nav { display: none !important; }
+          .mobile-toggle { display: flex !important; }
+        }
         @media (min-width: 768px) {
           .desktop-nav { display: flex !important; }
           .mobile-toggle { display: none !important; }

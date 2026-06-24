@@ -302,3 +302,14 @@ button, input, select, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
+
+/* Admin Dashboard navbar scrolling on small screens */
+@media (max-width: 992px) {
+  .admin-navbar-horizontal {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    justify-content: flex-start !important;
+  }
+}
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../utils/api';
+import { api, API_BASE_URL } from '../utils/api';
 import GlassCard from '../components/GlassCard';
 import { 
   Shield, Users, UserCheck, Calendar, Bell, FileText, Download, Trash2, Search, Check, X, AlertTriangle, Plus, Edit, Phone, Mail, MessageSquare, Image, Video, ShoppingBag, ShoppingCart, MapPin, Monitor, Truck, Navigation, Clock, Send, User, ArrowLeft
@@ -2000,9 +2000,26 @@ const AdminDashboard = () => {
                         <td style={{ padding: '14px 8px', fontSize: '0.85rem' }}>
                           <div>Floor {order.floorName}</div>
                           <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{order.address}</div>
-                          <div style={{ color: 'var(--accent-teal)', fontSize: '0.7rem', display: 'flex', gap: '2px', alignItems: 'center', marginTop: '2px' }}>
+                          <div style={{ color: 'var(--accent-teal)', fontSize: '0.7rem', display: 'flex', gap: '2px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
                             <MapPin size={10} /> Lat/Lng: {order.coordinates}
                           </div>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.coordinates)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              color: 'var(--primary-blue)',
+                              textDecoration: 'underline',
+                              fontWeight: 600,
+                              fontSize: '0.75rem',
+                              marginTop: '6px'
+                            }}
+                          >
+                            🗺️ Google Maps (Driver Link)
+                          </a>
                         </td>
                         <td style={{ padding: '14px 8px', fontSize: '0.8rem' }}>
                           {order.items.map((item, idx) => (
@@ -2092,10 +2109,28 @@ const AdminDashboard = () => {
               </p>
               
               {/* Order Summary */}
-              <div style={{ background: 'var(--bg-primary)', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.85rem' }}>
-                <strong>Order:</strong> #{selectedOrder._id?.substring(0, 10)}... &nbsp;|&nbsp;
-                <strong>Patient:</strong> {selectedOrder.patientName} &nbsp;|&nbsp;
-                <strong>Total:</strong> ₹{selectedOrder.totalINR}
+              <div style={{ background: 'var(--bg-primary)', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.85rem', lineHeight: '1.6' }}>
+                <div><strong>Order:</strong> #{selectedOrder._id?.substring(0, 10)}... &nbsp;|&nbsp; <strong>Patient:</strong> {selectedOrder.patientName} &nbsp;|&nbsp; <strong>Total:</strong> ₹{selectedOrder.totalINR}</div>
+                <div style={{ borderTop: '1px solid var(--glass-border)', marginTop: '8px', paddingTop: '8px' }}>
+                  <strong>Exact Location:</strong> Floor {selectedOrder.floorName}, {selectedOrder.address}
+                </div>
+                <div style={{ marginTop: '4px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <strong>Coordinates:</strong> {selectedOrder.coordinates}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedOrder.coordinates)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: 'var(--primary-blue)',
+                      textDecoration: 'underline',
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      marginLeft: '4px'
+                    }}
+                  >
+                    🗺️ Open Driver Route Link
+                  </a>
+                </div>
               </div>
 
               <form onSubmit={handleDispatchOrder}>
@@ -2542,7 +2577,7 @@ const AdminDashboard = () => {
                         <td style={{ padding: '14px 8px', textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '8px' }}>
                             <a
-                              href={`http://localhost:5000/api/releases/${rel._id || rel.id}/download`}
+                              href={`${API_BASE_URL}/releases/${rel._id || rel.id}/download`}
                               className="btn btn-secondary"
                               style={{ padding: '6px 10px', fontSize: '0.75rem', color: 'var(--success-green)', textDecoration: 'none' }}
                             >

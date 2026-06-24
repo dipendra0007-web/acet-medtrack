@@ -31,33 +31,5 @@
     "message": "Hi admin, checking if the alarm sound can sync in real time when active.",
     "status": "pending",
     "replies": []
-  },
-  {
-    "_id": "5l6spvv0elf363emyzj0u",
-    "createdAt": "2026-06-23T21:48:25.910Z",
-    "updatedAt": "2026-06-23T21:48:25.910Z",
-    "name": "Praveen Support Test",
-    "email": "praveentest@gmail.com",
-    "subject": "Audible Alarm Check",
-    "message": "Hi admin, checking if the alarm sound can sync in real time when active.",
-    "status": "pending",
-    "replies": []
-  },
-  {
-    "_id": "0xswgyic5me46dcbc3pv2j",
-    "createdAt": "2026-06-23T21:51:20.183Z",
-    "updatedAt": "2026-06-23T21:55:50.497Z",
-    "name": "fg",
-    "email": "gf@gmail.com",
-    "subject": "gf",
-    "message": "gf",
-    "status": "replied",
-    "replies": [
-      {
-        "sender": "admin",
-        "text": "87",
-        "timestamp": "2026-06-23T21:55:50.497Z"
-      }
-    ]
   }
 ]

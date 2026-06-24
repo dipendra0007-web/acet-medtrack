@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Shield, Clock, Users, ArrowRight, Star, Send } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
-import { api } from '../utils/api';
+import { api, API_BASE_URL } from '../utils/api';
 
 const Home = () => {
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
@@ -358,7 +358,7 @@ const Home = () => {
                         }
                       </span>
                       <a
-                        href={`http://localhost:5000/api/releases/${rel._id || rel.id}/download`}
+                        href={`${API_BASE_URL}/releases/${rel._id || rel.id}/download`}
                         className="btn btn-primary"
                         style={{ padding: '8px 16px', fontSize: '0.82rem' }}
                       >

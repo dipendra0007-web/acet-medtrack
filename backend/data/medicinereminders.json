@@ -86,16 +86,16 @@
     ]
   },
   {
-    "_id": "wdublkyox67mx29wb0kzx",
-    "createdAt": "2026-06-24T04:14:10.500Z",
-    "updatedAt": "2026-06-24T04:15:08.500Z",
-    "patientId": "ciojq60098puo90o1xapa",
-    "name": "Nims",
-    "dosage": "100 mg",
+    "_id": "1kwyteo9wk7whgohjsd5h",
+    "createdAt": "2026-06-24T06:54:26.575Z",
+    "updatedAt": "2026-06-24T06:54:36.916Z",
+    "patientId": "7c55uepeyzbf4h2koh8r7e",
+    "name": "NIms",
+    "dosage": "5g00mg",
     "schedule": [
-      "09:45"
+      "00:26"
     ],
-    "instruction": "cvz",
+    "instruction": "after meal ",
     "durationDays": 7,
     "startDate": "2026-06-24",
     "endDate": "2026-07-01",
@@ -103,7 +103,76 @@
     "history": [
       {
         "date": "2026-06-24",
-        "time": "09:45",
+        "time": "00:26",
+        "status": "taken"
+      }
+    ]
+  },
+  {
+    "_id": "xtng8vhu2sg8yo5j03oaa3",
+    "createdAt": "2026-06-24T06:54:57.730Z",
+    "updatedAt": "2026-06-24T06:55:35.201Z",
+    "patientId": "7c55uepeyzbf4h2koh8r7e",
+    "name": "Nims ",
+    "dosage": "500 mg ",
+    "schedule": [
+      "12:25"
+    ],
+    "instruction": "resafgdv",
+    "durationDays": 7,
+    "startDate": "2026-06-24",
+    "endDate": "2026-07-01",
+    "active": true,
+    "history": [
+      {
+        "date": "2026-06-24",
+        "time": "12:25",
+        "status": "taken"
+      }
+    ]
+  },
+  {
+    "_id": "9azltugmyx9fghhks3rpr6",
+    "createdAt": "2026-06-24T06:56:12.153Z",
+    "updatedAt": "2026-06-24T06:57:08.489Z",
+    "patientId": "7c55uepeyzbf4h2koh8r7e",
+    "name": "paracetamol",
+    "dosage": "300mhg ",
+    "schedule": [
+      "12:27"
+    ],
+    "instruction": "fgsh",
+    "durationDays": 7,
+    "startDate": "2026-06-24",
+    "endDate": "2026-07-01",
+    "active": true,
+    "history": [
+      {
+        "date": "2026-06-24",
+        "time": "12:27",
+        "status": "taken"
+      }
+    ]
+  },
+  {
+    "_id": "ow04334uu7arhlaa7axy",
+    "createdAt": "2026-06-24T06:59:28.848Z",
+    "updatedAt": "2026-06-24T07:00:51.960Z",
+    "patientId": "7c55uepeyzbf4h2koh8r7e",
+    "name": "Boron",
+    "dosage": "5ml",
+    "schedule": [
+      "12:30"
+    ],
+    "instruction": "jyhg",
+    "durationDays": 7,
+    "startDate": "2026-06-24",
+    "endDate": "2026-07-01",
+    "active": true,
+    "history": [
+      {
+        "date": "2026-06-24",
+        "time": "12:30",
         "status": "taken"
       }
     ]

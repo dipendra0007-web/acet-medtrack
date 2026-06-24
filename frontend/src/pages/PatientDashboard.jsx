@@ -1618,7 +1618,23 @@ const PatientDashboard = () => {
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                          📍 Floor {order.floorName}, {order.address}
+                          <div>📍 Floor {order.floorName}, {order.address}</div>
+                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginTop: '4px' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Coords: {order.coordinates}</span>
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.coordinates)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: 'var(--primary-blue)',
+                                textDecoration: 'underline',
+                                fontWeight: 600,
+                                fontSize: '0.75rem'
+                              }}
+                            >
+                              🗺️ View Pin on Google Maps
+                            </a>
+                          </div>
                         </div>
                         <div style={{ fontWeight: 700 }}>₹{order.totalINR}</div>
                       </div>

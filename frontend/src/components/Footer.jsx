@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin, ExternalLink, Globe } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 const Footer = () => {
   const [releases, setReleases] = useState([]);
@@ -8,7 +9,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchReleases = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/releases');
+        const res = await fetch(`${API_BASE_URL}/releases`);
         if (res.ok) {
           const data = await res.json();
           setReleases(data);
@@ -122,7 +123,7 @@ const Footer = () => {
                   return (
                     <a
                       key={rel._id || rel.id}
-                      href={`http://localhost:5000/api/releases/${rel._id || rel.id}/download`}
+                      href={`${API_BASE_URL}/releases/${rel._id || rel.id}/download`}
                       style={{
                         background: '#121824',
                         color: 'white',

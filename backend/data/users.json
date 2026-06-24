@@ -286,12 +286,229 @@
     }
   },
   {
-    "_id": "ciojq60098puo90o1xapa",
-    "createdAt": "2026-06-24T04:13:15.610Z",
-    "updatedAt": "2026-06-24T04:13:15.610Z",
-    "name": "sysh",
-    "email": "sysh@gmail.com",
-    "password": "$2a$10$OpFYbweuVH6nROhx8aUwzeqoTIjXFredXkgIkh5dTJlQTjuxXkuxO",
+    "_id": "7c55uepeyzbf4h2koh8r7e",
+    "createdAt": "2026-06-24T06:53:43.397Z",
+    "updatedAt": "2026-06-24T06:57:54.021Z",
+    "name": "DIPENDRA",
+    "email": "dipu621@gmail.com",
+    "password": "$2a$10$fxt8c9J.K6t/oTJE9KNyiOZbMBhdJAtjpfCOS4/oJHazAoCJIfQXO",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "raju@gmail.com",
+        "passwordHash": "$2a$10$2AnwjbgKo1JtFZc3dreucuPMcZQ8HcalNrGxV9MECdhW84/42Os2G",
+        "permissions": {
+          "medicalRecords": true,
+          "prescriptions": true,
+          "medicineSchedules": true,
+          "appointments": true
+        }
+      }
+    }
+  },
+  {
+    "_id": "rzwjxuzresnodb9kdhpk3o",
+    "createdAt": "2026-06-24T07:04:55.543Z",
+    "updatedAt": "2026-06-24T07:04:55.543Z",
+    "name": "ffewg",
+    "email": "raj@gmail.com",
+    "password": "$2a$10$Yv5E5bElfHSH8YZN5PK0fu/i.1mUwZ.aTSfz/yaa9mNBII5hP5PEO",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
+  },
+  {
+    "_id": "gdid45wdzgkb23ty4q66zp",
+    "createdAt": "2026-06-24T07:10:49.740Z",
+    "updatedAt": "2026-06-24T07:10:49.740Z",
+    "name": "Test Patient",
+    "email": "testpatient@example.com",
+    "password": "$2a$10$u.ttKLE9ey1fPwcpTpbNv.iMCRJPVPeLCUJNHFXrAGvYPhcp/tDc6",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
+  },
+  {
+    "_id": "par8rwplhws9xeq68aeb",
+    "createdAt": "2026-06-24T07:13:29.107Z",
+    "updatedAt": "2026-06-24T07:14:29.031Z",
+    "name": "Test Doctor",
+    "email": "testdoctor@example.com",
+    "password": "$2a$10$cojQzm/VNbPFz5qxUHlLSuziNmE0JcCyvD/wEDuBrywjrnZziQBjO",
+    "role": "doctor",
+    "doctorApproved": true,
+    "doctorDetails": {
+      "specialization": "Dermatologist",
+      "experience": 8,
+      "clinicInfo": "Aditya Skin Care Clinic, Bangalore",
+      "availability": [
+        {
+          "day": "Monday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Tuesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Wednesday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Thursday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        },
+        {
+          "day": "Friday",
+          "slots": [
+            "09:00",
+            "10:00",
+            "11:00",
+            "14:00",
+            "15:00"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "_id": "voavm01vmp7i9tx1qz7ho",
+    "createdAt": "2026-06-24T07:33:19.897Z",
+    "updatedAt": "2026-06-24T07:33:19.897Z",
+    "name": "Patient One",
+    "email": "pat1@email.com",
+    "password": "$2a$10$gIhYXi7zMlfWmddPBB3OE.PT4dWaQOfYsKC0kSxW84vt3HZvzDPGS",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
+  },
+  {
+    "_id": "44tyf4i6vojcnqu128vv9i",
+    "createdAt": "2026-06-24T07:41:25.331Z",
+    "updatedAt": "2026-06-24T07:41:25.331Z",
+    "name": "fghddfgh",
+    "email": "21dopu@gmail.com",
+    "password": "$2a$10$hhwhYlj9/prqCTXdF0C6ZOgERy5Fm6JW0eBEeNcQiB/pV9LasCFzi",
+    "role": "patient",
+    "doctorApproved": true,
+    "patientDetails": {
+      "bloodGroup": "",
+      "allergies": [],
+      "conditions": [],
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relation": ""
+      },
+      "parentAccess": {
+        "username": "",
+        "passwordHash": "",
+        "permissions": {
+          "medicalRecords": false,
+          "prescriptions": false,
+          "medicineSchedules": false,
+          "appointments": false
+        }
+      }
+    }
+  },
+  {
+    "_id": "s7tgz928zoayy8rgetqxi",
+    "createdAt": "2026-06-24T07:46:33.092Z",
+    "updatedAt": "2026-06-24T07:46:33.092Z",
+    "name": "Admin User",
+    "email": "admin@email.com",
+    "password": "$2a$10$GFnqJ4yUraYJs7vmhORiXuTuDEipAv3mLdVIfg1ktG6QE2JdJ5k1a",
     "role": "patient",
     "doctorApproved": true,
     "patientDetails": {
