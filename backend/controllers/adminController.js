@@ -16,25 +16,26 @@ const getAdminDashboard = async (req, res) => {
     const totalUsers = await User.countDocuments({});
     const totalPatients = await User.countDocuments({ role: 'patient' });
     const totalDoctors = await User.countDocuments({ role: 'doctor' });
+    const totalDrivers = await User.countDocuments({ role: 'driver' });
     const totalAppointments = await Appointment.countDocuments({});
     const activeReminders = await MedicineReminder.countDocuments({ active: true });
     
-    // Recent activity log (last 20 logs)
     const logs = await SystemLog.find({});
-    // Simple sort by timestamp descending
     const sortedLogs = logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
 
-    // Count pending doctor approvals
     const pendingDoctors = await User.countDocuments({ role: 'doctor', doctorApproved: false });
+    const pendingDrivers = await User.countDocuments({ role: 'driver', 'driverDetails.approved': false });
 
     res.json({
       stats: {
         totalUsers,
         totalPatients,
         totalDoctors,
+        totalDrivers,
         totalAppointments,
         activeReminders,
-        pendingDoctors
+        pendingDoctors,
+        pendingDrivers
       },
       recentLogs: sortedLogs
     });
@@ -50,7 +51,6 @@ const getAdminDashboard = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({});
-    // Strip passwords before sending
     const cleanedUsers = users.map(u => {
       const copy = { ...u };
       delete copy.password;
@@ -101,7 +101,7 @@ const deleteUser = async (req, res) => {
 // @access  Private (Admin)
 const approveDoctor = async (req, res) => {
   const doctorId = req.params.id;
-  const { approved } = req.body; // boolean
+  const { approved } = req.body;
 
   try {
     const doctor = await User.findById(doctorId);
@@ -111,40 +111,47 @@ const approveDoctor = async (req, res) => {
 
     if (approved) {
       await User.findByIdAndUpdate(doctorId, { $set: { doctorApproved: true } });
-      await logEvent(
-        'APPROVE_DOCTOR',
-        req.user.id,
-        req.user.name,
-        req.user.role,
-        `Approved doctor registration: Dr. ${doctor.name}`
-      );
-      await sendNotification(
-        doctorId,
-        'Account Approved 🎓',
-        `Congratulations! Your doctor profile registration has been approved. You can now access the Doctor Panel.`,
-        'approval'
-      );
-      await sendNotification(
-        'admin',
-        'Doctor Approved',
-        `Dr. ${doctor.name} has been approved and added to the medical registry.`,
-        'approval'
-      );
+      await logEvent('APPROVE_DOCTOR', req.user.id, req.user.name, req.user.role, `Approved doctor registration: Dr. ${doctor.name}`);
+      await sendNotification(doctorId, 'Account Approved 🎓', `Congratulations! Your doctor profile has been approved. You can now access the Doctor Panel.`, 'approval');
+      await sendNotification('admin', 'Doctor Approved', `Dr. ${doctor.name} has been approved and added to the medical registry.`, 'approval');
       res.json({ message: `Doctor ${doctor.name} has been approved successfully` });
     } else {
-      // Rejecting means deleting the pending registration record
       await User.deleteOne({ _id: doctorId });
-      await logEvent(
-        'REJECT_DOCTOR',
-        req.user.id,
-        req.user.name,
-        req.user.role,
-        `Rejected and deleted doctor registration: Dr. ${doctor.name}`
-      );
+      await logEvent('REJECT_DOCTOR', req.user.id, req.user.name, req.user.role, `Rejected and deleted doctor registration: Dr. ${doctor.name}`);
       res.json({ message: `Doctor ${doctor.name}'s registration has been rejected and removed` });
     }
   } catch (error) {
     console.error('Approve doctor error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Approve/Reject a driver registration
+// @route   PUT /api/admin/drivers/:id/approve
+// @access  Private (Admin)
+const approveDriver = async (req, res) => {
+  const driverId = req.params.id;
+  const { approved } = req.body;
+
+  try {
+    const driver = await User.findById(driverId);
+    if (!driver || driver.role !== 'driver') {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+
+    if (approved) {
+      await User.findByIdAndUpdate(driverId, { $set: { 'driverDetails.approved': true } });
+      await logEvent('APPROVE_DRIVER', req.user.id, req.user.name, req.user.role, `Approved driver registration: ${driver.name}`);
+      await sendNotification(driverId, 'Driver Account Approved 🚗', `Your driver account has been approved! You can now log in and accept delivery assignments.`, 'approval');
+      await sendNotification('admin', 'Driver Approved', `Driver ${driver.name} (${driver.driverDetails?.vehicleName} - ${driver.driverDetails?.vehicleNumber}) has been approved.`, 'approval');
+      res.json({ message: `Driver ${driver.name} has been approved successfully` });
+    } else {
+      await User.deleteOne({ _id: driverId });
+      await logEvent('REJECT_DRIVER', req.user.id, req.user.name, req.user.role, `Rejected and deleted driver registration: ${driver.name}`);
+      res.json({ message: `Driver ${driver.name}'s registration has been rejected and removed` });
+    }
+  } catch (error) {
+    console.error('Approve driver error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -170,15 +177,7 @@ const createShopItem = async (req, res) => {
     return res.status(400).json({ message: 'All shop item fields are required.' });
   }
   try {
-    const item = await ShopItem.create({
-      name,
-      description,
-      priceINR: Number(priceINR),
-      priceUSD: Number(priceUSD),
-      stocks: Number(stocks || 0),
-      photo,
-      category
-    });
+    const item = await ShopItem.create({ name, description, priceINR: Number(priceINR), priceUSD: Number(priceUSD), stocks: Number(stocks || 0), photo, category });
     await logEvent('SHOP_ITEM_CREATED', req.user.id, req.user.name, req.user.role, `Created shop item: ${name}`);
     res.status(201).json(item);
   } catch (error) {
@@ -192,20 +191,8 @@ const updateShopItem = async (req, res) => {
   const { name, description, priceINR, priceUSD, stocks, photo, category } = req.body;
   try {
     const item = await ShopItem.findById(id);
-    if (!item) {
-      return res.status(404).json({ message: 'Shop item not found' });
-    }
-    const updated = await ShopItem.findByIdAndUpdate(id, {
-      $set: {
-        name,
-        description,
-        priceINR: Number(priceINR),
-        priceUSD: Number(priceUSD),
-        stocks: Number(stocks || 0),
-        photo,
-        category
-      }
-    }, { new: true });
+    if (!item) return res.status(404).json({ message: 'Shop item not found' });
+    const updated = await ShopItem.findByIdAndUpdate(id, { $set: { name, description, priceINR: Number(priceINR), priceUSD: Number(priceUSD), stocks: Number(stocks || 0), photo, category } }, { new: true });
     await logEvent('SHOP_ITEM_UPDATED', req.user.id, req.user.name, req.user.role, `Updated shop item: ${name}`);
     res.json(updated);
   } catch (error) {
@@ -218,9 +205,7 @@ const deleteShopItem = async (req, res) => {
   const { id } = req.params;
   try {
     const item = await ShopItem.findById(id);
-    if (!item) {
-      return res.status(404).json({ message: 'Shop item not found' });
-    }
+    if (!item) return res.status(404).json({ message: 'Shop item not found' });
     await ShopItem.deleteOne({ _id: id });
     await logEvent('SHOP_ITEM_DELETED', req.user.id, req.user.name, req.user.role, `Deleted shop item: ${item.name}`);
     res.json({ message: 'Shop item deleted successfully' });
@@ -234,7 +219,6 @@ const deleteShopItem = async (req, res) => {
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({});
-    // Sort by createdAt descending
     const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json(sortedOrders);
   } catch (error) {
@@ -245,18 +229,17 @@ const getAllOrders = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   const { id } = req.params;
-  const { status, driverName, driverPhone, deliveryStreet, deliveryFloor, deliveryArea, deliveryLandmark } = req.body;
+  const { status, driverId, driverName, driverPhone, deliveryStreet, deliveryFloor, deliveryArea, deliveryLandmark } = req.body;
   try {
     const order = await Order.findById(id);
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
+    if (!order) return res.status(404).json({ message: 'Order not found' });
 
     const setPayload = { status };
     if (status === 'Out for Delivery') {
       if (!driverName || !driverPhone) {
         return res.status(400).json({ message: 'Driver Name and Phone are required when Out for Delivery.' });
       }
+      setPayload.driverId = driverId || '';
       setPayload.driverName = driverName;
       setPayload.driverPhone = driverPhone;
       setPayload.deliveryStreet = deliveryStreet || '';
@@ -264,50 +247,29 @@ const updateOrderStatus = async (req, res) => {
       setPayload.deliveryArea = deliveryArea || '';
       setPayload.deliveryLandmark = deliveryLandmark || '';
 
-      // Notify the patient
+      // If a registered driver was selected, update their status to on_delivery
+      if (driverId) {
+        await User.findByIdAndUpdate(driverId, { $set: { 'driverDetails.status': 'on_delivery' } });
+      }
+
       await sendNotification(
         order.patientId,
         'Delivery Boy Assigned 🛵',
         `Driver ${driverName} (${driverPhone}) has been assigned to dispatch your order. Destination: Floor: ${deliveryFloor || '-'}, Street: ${deliveryStreet || '-'}, Area: ${deliveryArea || '-'}, Landmark: ${deliveryLandmark || '-'}.`,
         'order_dispatch'
       );
-
-      // Notify admins
-      await sendNotification(
-        'admin',
-        'Order Dispatched 📦',
-        `Order ${order._id.substring(0, 8)}... has been assigned to driver ${driverName} (${driverPhone}).`,
-        'order_dispatch'
-      );
+      await sendNotification('admin', 'Order Dispatched 📦', `Order ${order._id.substring(0, 8)}... has been assigned to driver ${driverName} (${driverPhone}).`, 'order_dispatch');
     } else if (status === 'Delivered') {
-      // Notify the patient
-      await sendNotification(
-        order.patientId,
-        'Order Delivered! 🎉',
-        `Your medicine order has been successfully delivered by ${order.driverName || 'driver'}. Thank you for choosing MedTrack!`,
-        'order_dispatch'
-      );
-
-      // Notify admins
-      await sendNotification(
-        'admin',
-        'Order Completed ✅',
-        `Order ${order._id.substring(0, 8)}... has been successfully delivered to patient ${order.patientName}.`,
-        'order_dispatch'
-      );
+      // Free up driver
+      if (order.driverId) {
+        await User.findByIdAndUpdate(order.driverId, { $set: { 'driverDetails.status': 'active' } });
+      }
+      await sendNotification(order.patientId, 'Order Delivered! 🎉', `Your medicine order has been successfully delivered by ${order.driverName || 'driver'}. Thank you for choosing MedTrack!`, 'order_dispatch');
+      await sendNotification('admin', 'Order Completed ✅', `Order ${order._id.substring(0, 8)}... has been successfully delivered to patient ${order.patientName}.`, 'order_dispatch');
     }
 
-    const updated = await Order.findByIdAndUpdate(id, {
-      $set: setPayload
-    }, { new: true });
-
-    await logEvent(
-      'ORDER_STATUS_UPDATED',
-      req.user.id,
-      req.user.name,
-      req.user.role,
-      `Updated order ${order._id} status to ${status}`
-    );
+    const updated = await Order.findByIdAndUpdate(id, { $set: setPayload }, { new: true });
+    await logEvent('ORDER_STATUS_UPDATED', req.user.id, req.user.name, req.user.role, `Updated order ${order._id} status to ${status}`);
     res.json(updated);
   } catch (error) {
     console.error('Update order status error:', error);
@@ -328,13 +290,11 @@ const factoryReset = async (req, res) => {
       return res.status(400).json({ message: 'Backup files not found. Cannot reset.' });
     }
     
-    // 1. Reset Local File storage (JSON)
     const files = fs.readdirSync(backupDir);
     files.forEach(file => {
       fs.copyFileSync(path.join(backupDir, file), path.join(dataDir, file));
     });
     
-    // 2. If using MongoDB, clear all models and import from JSON files
     if (useMongo) {
       const mongoose = require('mongoose');
       const models = mongoose.modelNames();
@@ -342,15 +302,12 @@ const factoryReset = async (req, res) => {
         try {
           const model = mongoose.model(modelName);
           await model.deleteMany({});
-          
           const collectionName = modelName.toLowerCase() + 's';
           const filePath = path.join(backupDir, `${collectionName}.json`);
           if (fs.existsSync(filePath)) {
             const fileContent = fs.readFileSync(filePath, 'utf8');
             const data = JSON.parse(fileContent || '[]');
-            if (data.length > 0) {
-              await model.insertMany(data);
-            }
+            if (data.length > 0) await model.insertMany(data);
           }
         } catch (e) {
           console.error(`Error resetting mongo model ${modelName}:`, e);
@@ -358,14 +315,7 @@ const factoryReset = async (req, res) => {
       }
     }
     
-    await logEvent(
-      'FACTORY_RESET',
-      req.user.id,
-      req.user.name,
-      req.user.role,
-      'Triggered factory reset to clean default demo data'
-    );
-    
+    await logEvent('FACTORY_RESET', req.user.id, req.user.name, req.user.role, 'Triggered factory reset to clean default demo data');
     res.json({ message: 'Database reset successfully to default seed data.' });
   } catch (error) {
     console.error('Factory reset error:', error);
@@ -378,6 +328,7 @@ module.exports = {
   getAllUsers,
   deleteUser,
   approveDoctor,
+  approveDriver,
   getSystemLogs,
   createShopItem,
   updateShopItem,

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAdminDashboard, getAllUsers, deleteUser, approveDoctor, getSystemLogs, createShopItem, updateShopItem, deleteShopItem, getAllOrders, updateOrderStatus, factoryReset } = require('../controllers/adminController');
+const { getAdminDashboard, getAllUsers, deleteUser, approveDoctor, approveDriver, getSystemLogs, createShopItem, updateShopItem, deleteShopItem, getAllOrders, updateOrderStatus, factoryReset } = require('../controllers/adminController');
 const { createTeamMember, updateTeamMember, deleteTeamMember } = require('../controllers/teamController');
 const { getAllReviews, approveReview, deleteReview } = require('../controllers/reviewController');
 const { createGalleryItem, deleteGalleryItem } = require('../controllers/galleryController');
@@ -10,6 +10,7 @@ router.get('/dashboard', protect, authorize('admin'), getAdminDashboard);
 router.get('/users', protect, authorize('admin'), getAllUsers);
 router.delete('/users/:id', protect, authorize('admin'), deleteUser);
 router.put('/doctors/:id/approve', protect, authorize('admin'), approveDoctor);
+router.put('/drivers/:id/approve', protect, authorize('admin'), approveDriver);
 router.get('/logs', protect, authorize('admin'), getSystemLogs);
 router.post('/factory-reset', protect, authorize('admin'), factoryReset);
 

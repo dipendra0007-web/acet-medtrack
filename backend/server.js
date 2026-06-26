@@ -19,6 +19,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const slideRoutes = require('./routes/slideRoutes');
 const releaseRoutes = require('./routes/releaseRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const driverRoutes = require('./routes/driverRoutes');
 
 const app = express();
 
@@ -77,6 +78,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/slides', slideRoutes);
 app.use('/api/releases', releaseRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/driver', driverRoutes);
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {

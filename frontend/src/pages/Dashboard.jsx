@@ -5,6 +5,7 @@ import PatientDashboard from './PatientDashboard';
 import DoctorDashboard from './DoctorDashboard';
 import ParentDashboard from './ParentDashboard';
 import AdminDashboard from './AdminDashboard';
+import DriverDashboard from './DriverDashboard';
 import GlassCard from '../components/GlassCard';
 
 const Dashboard = () => {
@@ -12,32 +13,19 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 'calc(100vh - 160px)'
-      }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 160px)' }}>
         <GlassCard style={{ padding: '32px', textAlign: 'center', maxWidth: '320px', width: '100%' }}>
-          <div className="pulse-alarm" style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'var(--primary-blue)',
-            margin: '0 auto 16px auto'
-          }}></div>
+          <div className="pulse-alarm" style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-blue)', margin: '0 auto 16px auto' }}></div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Loading Session...</h3>
         </GlassCard>
       </div>
     );
   }
 
-  // Session guard
   if (!token || !user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Route to the appropriate sub-dashboard based on role
   switch (user.role) {
     case 'patient':
       return <PatientDashboard />;
@@ -47,6 +35,8 @@ const Dashboard = () => {
       return <ParentDashboard />;
     case 'admin':
       return <AdminDashboard />;
+    case 'driver':
+      return <DriverDashboard />;
     default:
       return (
         <div className="container" style={{ padding: '60px 0' }}>

@@ -115,10 +115,13 @@ const AdminDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [driverName, setDriverName] = useState('');
   const [driverPhone, setDriverPhone] = useState('');
+  const [selectedDriverId, setSelectedDriverId] = useState('');
   const [deliveryStreet, setDeliveryStreet] = useState('');
   const [deliveryFloor, setDeliveryFloor] = useState('');
   const [deliveryArea, setDeliveryArea] = useState('');
   const [deliveryLandmark, setDeliveryLandmark] = useState('');
+  const [availableDrivers, setAvailableDrivers] = useState([]);
+  const [driversLoading, setDriversLoading] = useState(false);
 
   // Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -246,6 +249,17 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error('Failed to load support tickets:', err);
     }
+
+    // Fetch available drivers
+    try {
+      setDriversLoading(true);
+      const driversData = await api.get('/driver/available');
+      setAvailableDrivers(driversData || []);
+      setDriversLoading(false);
+    } catch (err) {
+      setAvailableDrivers([]);
+      setDriversLoading(false);
+    }
   };
 
   const triggerSuccess = (msg) => {
@@ -280,6 +294,33 @@ const AdminDashboard = () => {
       triggerError(err.message);
     }
   };
+
+  const handleApproveDriver = async (id, name, approved) => {
+    try {
+      await api.put(`/admin/drivers/${id}/approve`, { approved });
+      triggerSuccess(approved ? `Driver ${name} approved & can now log in.` : `Driver registration for ${name} rejected.`);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  // When a registered driver is selected from dropdown, auto-fill name & phone
+  const handleSelectRegisteredDriver = (driverId) => {
+    setSelectedDriverId(driverId);
+    if (!driverId) {
+      setDriverName('');
+      setDriverPhone('');
+      return;
+    }
+    const found = availableDrivers.find(d => d.id === driverId);
+    if (found) {
+      setDriverName(found.name);
+      setDriverPhone(found.email); // drivers may not always have a phone field
+    }
+  };
+
+
 
   // Team Actions
   const handleTeamPhotoUpload = (e) => {
@@ -516,6 +557,7 @@ const AdminDashboard = () => {
     try {
       await api.put(`/admin/orders/${selectedOrder._id}/status`, {
         status: 'Out for Delivery',
+        driverId: selectedDriverId || '',
         driverName,
         driverPhone,
         deliveryStreet,
@@ -525,6 +567,7 @@ const AdminDashboard = () => {
       });
       triggerSuccess(`Order dispatched! Driver ${driverName} assigned successfully.`);
       setSelectedOrder(null);
+      setSelectedDriverId('');
       setDriverName('');
       setDriverPhone('');
       setDeliveryStreet('');
@@ -895,6 +938,7 @@ const AdminDashboard = () => {
           {[
             { id: 'users', name: 'User Management', icon: <Users size={16} /> },
             { id: 'approvals', name: `Approval Pipeline (${stats.pendingDoctors})`, icon: <UserCheck size={16} /> },
+            { id: 'drivers', name: `Driver Management ${stats.pendingDrivers > 0 ? `(${stats.pendingDrivers})` : ''}`, icon: <Truck size={16} /> },
             { id: 'team', name: 'Our Team Management', icon: <Users size={16} /> },
             { id: 'reviews', name: 'Review Moderation', icon: <MessageSquare size={16} /> },
             { id: 'gallery', name: 'Gallery Manager', icon: <Image size={16} /> },
@@ -1171,6 +1215,132 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </GlassCard>
+        )}
+
+        {/* Driver Management Panel */}
+        {activeTab === 'drivers' && (
+          <GlassCard>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Truck size={22} /> Driver Management
+              </h3>
+              <button onClick={fetchAdminData} style={{ padding: '8px 16px', border: '1px solid var(--glass-border)', borderRadius: '8px', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.85rem' }}>
+                🔄 Refresh
+              </button>
+            </div>
+
+            {/* Pending Approval Section */}
+            {(() => {
+              const pendingDrivers = users.filter(u => u.role === 'driver' && !u.driverDetails?.approved);
+              return pendingDrivers.length > 0 ? (
+                <div style={{ marginBottom: '32px' }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ background: 'var(--warning-orange)', color: 'white', borderRadius: '12px', padding: '2px 10px', fontSize: '0.8rem' }}>{pendingDrivers.length}</span>
+                    Pending Driver Approvals
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {pendingDrivers.map(driver => (
+                      <div key={driver._id} style={{
+                        background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.05))',
+                        border: '1px solid rgba(245,158,11,0.4)',
+                        borderRadius: '14px', padding: '20px'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div style={{
+                              width: '52px', height: '52px', borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: 'white', fontWeight: 800, fontSize: '1.3rem', flexShrink: 0
+                            }}>{driver.name?.charAt(0)}</div>
+                            <div>
+                              <h4 style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '4px' }}>{driver.name}</h4>
+                              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>{driver.email}</p>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '0.8rem' }}>
+                                <span style={{ background: 'var(--bg-primary)', padding: '3px 10px', borderRadius: '10px' }}>
+                                  🚗 {driver.driverDetails?.vehicleName} · {driver.driverDetails?.vehicleNumber}
+                                </span>
+                                <span style={{ background: 'var(--bg-primary)', padding: '3px 10px', borderRadius: '10px' }}>
+                                  🪪 {driver.driverDetails?.licenseNumber}
+                                </span>
+                                <span style={{ background: 'var(--bg-primary)', padding: '3px 10px', borderRadius: '10px' }}>
+                                  🎂 Age: {driver.driverDetails?.age}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
+                            <button
+                              onClick={() => handleApproveDriver(driver._id, driver.name, true)}
+                              style={{ padding: '10px 20px', background: 'var(--success-green)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+                            ><Check size={16} /> Approve</button>
+                            <button
+                              onClick={() => { if (window.confirm(`Reject and remove driver ${driver.name}?`)) handleApproveDriver(driver._id, driver.name, false); }}
+                              style={{ padding: '10px 20px', background: 'var(--danger-red)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+                            ><X size={16} /> Reject</button>
+                          </div>
+                        </div>
+
+                        {/* License Photo Preview */}
+                        {driver.driverDetails?.licensePhoto && (
+                          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--glass-border)' }}>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>📸 License Photo:</p>
+                            <img src={driver.driverDetails.licensePhoto} alt="License" style={{ maxHeight: '160px', maxWidth: '100%', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Approved / Active Drivers */}
+            {(() => {
+              const approvedDrivers = users.filter(u => u.role === 'driver' && u.driverDetails?.approved);
+              return (
+                <div>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ background: 'var(--success-green)', color: 'white', borderRadius: '12px', padding: '2px 10px', fontSize: '0.8rem' }}>{approvedDrivers.length}</span>
+                    Approved Drivers
+                  </h4>
+                  {approvedDrivers.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No approved drivers yet. Approve registrations above.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                      {approvedDrivers.map(driver => {
+                        const statusColor = driver.driverDetails?.status === 'active' ? 'var(--success-green)' : driver.driverDetails?.status === 'on_delivery' ? 'var(--warning-orange)' : 'var(--danger-red)';
+                        return (
+                          <div key={driver._id} style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '18px', border: '1px solid var(--glass-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-blue), var(--accent-teal))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, flexShrink: 0 }}>
+                                {driver.name?.charAt(0)}
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <h4 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{driver.name}</h4>
+                                <span style={{ background: `${statusColor}20`, color: statusColor, padding: '1px 8px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 700 }}>
+                                  ● {driver.driverDetails?.status === 'active' ? 'Online' : driver.driverDetails?.status === 'on_delivery' ? 'On Delivery' : 'Offline'}
+                                </span>
+                              </div>
+                            </div>
+                            <div style={{ fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
+                              <div>🚗 <strong style={{ color: 'var(--text-primary)' }}>{driver.driverDetails?.vehicleName}</strong> · {driver.driverDetails?.vehicleNumber}</div>
+                              <div>🪪 License: {driver.driverDetails?.licenseNumber}</div>
+                              <div>📧 {driver.email}</div>
+                            </div>
+                            <button
+                              onClick={() => { if (window.confirm(`Delete driver ${driver.name}?`)) handleDeleteUser(driver._id, driver.name); }}
+                              style={{ marginTop: '12px', width: '100%', padding: '8px', background: 'transparent', border: '1px solid var(--danger-red)', borderRadius: '8px', color: 'var(--danger-red)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            ><Trash2 size={14} /> Remove Driver</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </GlassCard>
         )}
 
@@ -2180,6 +2350,27 @@ const AdminDashboard = () => {
                   <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-blue)', marginBottom: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
                     <Truck size={14} /> Driver Information
                   </h4>
+
+                  {/* Quick Select Registered Driver */}
+                  {availableDrivers.length > 0 && (
+                    <div className="form-group">
+                      <label className="form-label">🚗 Select Registered Driver (Auto-fill)</label>
+                      <select
+                        className="form-control"
+                        value={selectedDriverId}
+                        onChange={e => handleSelectRegisteredDriver(e.target.value)}
+                      >
+                        <option value="">— Or enter manually below —</option>
+                        {availableDrivers.map(d => (
+                          <option key={d.id} value={d.id}>
+                            {d.name} · {d.driverDetails?.vehicleName} · {d.driverDetails?.status === 'active' ? '🟢 Online' : d.driverDetails?.status === 'on_delivery' ? '🟡 On Delivery' : '🔴 Offline'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {driversLoading && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Loading registered drivers...</p>}
+
                   <div className="grid-2" style={{ gap: '12px' }}>
                     <div className="form-group">
                       <label className="form-label">Driver Name *</label>

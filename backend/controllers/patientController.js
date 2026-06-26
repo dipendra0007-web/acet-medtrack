@@ -8,7 +8,8 @@ const Appointment = require('../models/Appointment');
 // @route   PUT /api/patient/profile
 // @access  Private (Patient)
 const updateProfile = async (req, res) => {
-  const { bloodGroup, allergies, conditions, emergencyContact, photo } = req.body;
+  const { bloodGroup, allergies, conditions, emergencyContact, photo,
+          country, state, city, pincode, landmark } = req.body;
 
   try {
     const user = await User.findById(req.user.id);
@@ -22,7 +23,12 @@ const updateProfile = async (req, res) => {
       bloodGroup: bloodGroup !== undefined ? bloodGroup : user.patientDetails.bloodGroup,
       allergies: allergies !== undefined ? allergies : user.patientDetails.allergies,
       conditions: conditions !== undefined ? conditions : user.patientDetails.conditions,
-      emergencyContact: emergencyContact !== undefined ? emergencyContact : user.patientDetails.emergencyContact
+      emergencyContact: emergencyContact !== undefined ? emergencyContact : user.patientDetails.emergencyContact,
+      country: country !== undefined ? country : (user.patientDetails.country || ''),
+      state: state !== undefined ? state : (user.patientDetails.state || ''),
+      city: city !== undefined ? city : (user.patientDetails.city || ''),
+      pincode: pincode !== undefined ? pincode : (user.patientDetails.pincode || ''),
+      landmark: landmark !== undefined ? landmark : (user.patientDetails.landmark || '')
     };
 
     const updateFields = { patientDetails: user.patientDetails };

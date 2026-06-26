@@ -12,7 +12,10 @@ const generateToken = (payload) => {
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  const { name, email, password, role, adminSecret, doctorDetails } = req.body;
+  const {
+    name, email, password, role, adminSecret,
+    doctorDetails, patientDetails, driverDetails
+  } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -20,7 +23,6 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Determine approval status and finalize details based on role
     let isApproved = false;
     let finalRole = role;
 
@@ -30,9 +32,11 @@ const registerUser = async (req, res) => {
       }
       isApproved = true;
     } else if (role === 'patient') {
-      isApproved = true; // Patients are approved by default
+      isApproved = true;
     } else if (role === 'doctor') {
-      isApproved = false; // Doctors need admin approval
+      isApproved = false; // Needs admin approval
+    } else if (role === 'driver') {
+      isApproved = false; // Needs admin approval
     } else {
       return res.status(400).json({ message: 'Invalid role specified' });
     }
@@ -59,13 +63,30 @@ const registerUser = async (req, res) => {
           { day: 'Wednesday', slots: ['09:00', '10:00', '11:00', '14:00', '15:00'] },
           { day: 'Thursday', slots: ['09:00', '10:00', '11:00', '14:00', '15:00'] },
           { day: 'Friday', slots: ['09:00', '10:00', '11:00', '14:00', '15:00'] }
-        ]
+        ],
+        // Location fields
+        country: doctorDetails?.country || '',
+        state: doctorDetails?.state || '',
+        city: doctorDetails?.city || '',
+        pincode: doctorDetails?.pincode || '',
+        landmark: doctorDetails?.landmark || '',
+        // Contact & Document fields
+        contactNumber: doctorDetails?.contactNumber || '',
+        licenseDocument: doctorDetails?.licenseDocument || '',
+        educationQualification: doctorDetails?.educationQualification || '',
+        otherDocuments: doctorDetails?.otherDocuments || ''
       };
     } else if (role === 'patient') {
       userData.patientDetails = {
         bloodGroup: '',
         allergies: [],
         conditions: [],
+        // Location fields
+        country: patientDetails?.country || '',
+        state: patientDetails?.state || '',
+        city: patientDetails?.city || '',
+        pincode: patientDetails?.pincode || '',
+        landmark: patientDetails?.landmark || '',
         emergencyContact: { name: '', phone: '', relation: '' },
         parentAccess: {
           username: '',
@@ -78,6 +99,20 @@ const registerUser = async (req, res) => {
           }
         }
       };
+    } else if (role === 'driver') {
+      if (!driverDetails?.licenseNumber || !driverDetails?.vehicleNumber || !driverDetails?.vehicleName) {
+        return res.status(400).json({ message: 'License number, vehicle number, and vehicle name are required for drivers' });
+      }
+      userData.driverDetails = {
+        age: Number(driverDetails?.age) || 18,
+        licenseNumber: driverDetails?.licenseNumber || '',
+        vehicleNumber: driverDetails?.vehicleNumber || '',
+        vehicleName: driverDetails?.vehicleName || '',
+        licensePhoto: driverDetails?.licensePhoto || '',
+        approved: false,
+        status: 'active',
+        currentLocation: { latitude: null, longitude: null }
+      };
     }
 
     const user = await User.create(userData);
@@ -87,12 +122,13 @@ const registerUser = async (req, res) => {
       user._id,
       user.name,
       user.role,
-      `User registered successfully. Approved: ${user.doctorApproved}`
+      `User registered successfully. Approved: ${user.doctorApproved}. Role: ${user.role}`
     );
 
+    const pendingRoles = ['doctor', 'driver'];
     res.status(201).json({
-      message: role === 'doctor' 
-        ? 'Registration successful! Waiting for Admin approval.' 
+      message: pendingRoles.includes(role)
+        ? `Registration successful! Your account is pending Admin verification.`
         : 'Registration successful!',
       token: isApproved ? generateToken({ id: user._id, role: user.role, name: user.name }) : null,
       user: {
@@ -100,7 +136,8 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        doctorApproved: user.doctorApproved
+        doctorApproved: user.doctorApproved,
+        driverApproved: user.driverDetails?.approved || false
       }
     });
 
@@ -110,7 +147,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Login user (Patient, Doctor, Admin)
+// @desc    Login user (Patient, Doctor, Admin, Driver)
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = async (req, res) => {
@@ -128,7 +165,11 @@ const loginUser = async (req, res) => {
     }
 
     if (user.role === 'doctor' && !user.doctorApproved) {
-      return res.status(403).json({ message: 'Your account is pending approval by the Admin. Please wait or contact support.' });
+      return res.status(403).json({ message: 'Your doctor account is pending Admin approval. Please wait or contact support.' });
+    }
+
+    if (user.role === 'driver' && !user.driverDetails?.approved) {
+      return res.status(403).json({ message: 'Your driver account is pending Admin approval. Please wait or contact support.' });
     }
 
     await logEvent('LOGIN', user._id, user.name, user.role, 'User logged in successfully');
@@ -142,7 +183,8 @@ const loginUser = async (req, res) => {
         role: user.role,
         doctorApproved: user.doctorApproved,
         patientDetails: user.patientDetails,
-        doctorDetails: user.doctorDetails
+        doctorDetails: user.doctorDetails,
+        driverDetails: user.driverDetails
       }
     });
   } catch (error) {
@@ -162,7 +204,6 @@ const loginParent = async (req, res) => {
   }
 
   try {
-    // We search users with role patient to find one with matching parentAccess username
     const allUsers = await User.find({ role: 'patient' });
     let patient = null;
 
@@ -193,7 +234,7 @@ const loginParent = async (req, res) => {
 
     res.json({
       token: generateToken({
-        id: patient._id, // Set user ID to patient ID so they query patient records
+        id: patient._id,
         role: 'parent',
         name: `Parent of ${patient.name}`,
         permissions: parentAccess.permissions
@@ -223,11 +264,17 @@ const getMe = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Don't send back password
     const userObj = user.toObject ? user.toObject() : { ...user };
     delete userObj.password;
     if (userObj.patientDetails?.parentAccess) {
       delete userObj.patientDetails.parentAccess.passwordHash;
+    }
+    // Strip sensitive base64 docs from getMe to save bandwidth (return flag instead)
+    if (userObj.doctorDetails) {
+      userObj.doctorDetails.hasLicenseDocument = !!userObj.doctorDetails.licenseDocument;
+      userObj.doctorDetails.hasEducationQualification = !!userObj.doctorDetails.educationQualification;
+      userObj.doctorDetails.hasOtherDocuments = !!userObj.doctorDetails.otherDocuments;
+      // Keep base64 for profile display only when explicitly needed
     }
 
     res.json(userObj);

@@ -7,7 +7,9 @@ const { logEvent } = require('../utils/logger');
 // @route   PUT /api/doctor/profile
 // @access  Private (Doctor)
 const updateDoctorProfile = async (req, res) => {
-  const { specialization, experience, clinicInfo, availability, photo } = req.body;
+  const { specialization, experience, clinicInfo, availability, photo,
+          country, state, city, pincode, landmark, contactNumber,
+          licenseDocument, educationQualification, otherDocuments } = req.body;
 
   try {
     const user = await User.findById(req.user.id);
@@ -19,16 +21,22 @@ const updateDoctorProfile = async (req, res) => {
       specialization: specialization || user.doctorDetails?.specialization || 'General',
       experience: experience !== undefined ? Number(experience) : user.doctorDetails?.experience,
       clinicInfo: clinicInfo || user.doctorDetails?.clinicInfo || '',
-      availability: availability || user.doctorDetails?.availability || []
+      availability: availability || user.doctorDetails?.availability || [],
+      country: country !== undefined ? country : (user.doctorDetails?.country || ''),
+      state: state !== undefined ? state : (user.doctorDetails?.state || ''),
+      city: city !== undefined ? city : (user.doctorDetails?.city || ''),
+      pincode: pincode !== undefined ? pincode : (user.doctorDetails?.pincode || ''),
+      landmark: landmark !== undefined ? landmark : (user.doctorDetails?.landmark || ''),
+      contactNumber: contactNumber !== undefined ? contactNumber : (user.doctorDetails?.contactNumber || ''),
+      licenseDocument: licenseDocument !== undefined ? licenseDocument : (user.doctorDetails?.licenseDocument || ''),
+      educationQualification: educationQualification !== undefined ? educationQualification : (user.doctorDetails?.educationQualification || ''),
+      otherDocuments: otherDocuments !== undefined ? otherDocuments : (user.doctorDetails?.otherDocuments || '')
     };
 
     const updateFields = { doctorDetails: user.doctorDetails };
-    if (photo !== undefined) {
-      updateFields.photo = photo;
-    }
+    if (photo !== undefined) updateFields.photo = photo;
 
     await User.findByIdAndUpdate(req.user.id, { $set: updateFields });
-
     await logEvent('UPDATE_DOCTOR_PROFILE', user._id, user.name, user.role, 'Doctor updated professional profile');
 
     res.json({ message: 'Doctor profile updated successfully', doctorDetails: user.doctorDetails, photo: photo || user.photo });
@@ -38,19 +46,32 @@ const updateDoctorProfile = async (req, res) => {
   }
 };
 
-// @desc    Get all approved doctors
+// @desc    Get all approved doctors (with location data for area matching)
 // @route   GET /api/doctor/list
 // @access  Private (Patient, Admin, Doctor)
 const getDoctorsList = async (req, res) => {
   try {
     const doctors = await User.find({ role: 'doctor', doctorApproved: true });
     
-    // Clean return list (no password or sensitive detail)
     const cleanedDoctors = doctors.map(doc => ({
       id: doc._id,
       name: doc.name,
       email: doc.email,
-      doctorDetails: doc.doctorDetails
+      photo: doc.photo,
+      doctorDetails: {
+        specialization: doc.doctorDetails?.specialization,
+        experience: doc.doctorDetails?.experience,
+        clinicInfo: doc.doctorDetails?.clinicInfo,
+        availability: doc.doctorDetails?.availability,
+        country: doc.doctorDetails?.country,
+        state: doc.doctorDetails?.state,
+        city: doc.doctorDetails?.city,
+        pincode: doc.doctorDetails?.pincode,
+        landmark: doc.doctorDetails?.landmark,
+        contactNumber: doc.doctorDetails?.contactNumber,
+        hasLicenseDocument: !!doc.doctorDetails?.licenseDocument,
+        hasEducationQualification: !!doc.doctorDetails?.educationQualification
+      }
     }));
 
     res.json(cleanedDoctors);
@@ -68,11 +89,8 @@ const getDoctorDashboard = async (req, res) => {
     const appointments = await Appointment.find({ doctorId: req.user.id });
     const prescriptions = await Prescription.find({ doctorId: req.user.id });
 
-    // Aggregate unique patient ids treated
     const treatedPatientIds = [...new Set(prescriptions.map(p => p.patientId))];
     const patientsTreatedCount = treatedPatientIds.length;
-
-    // Filter appointments for counts
     const pendingCount = appointments.filter(a => a.status === 'pending').length;
     const approvedCount = appointments.filter(a => a.status === 'approved').length;
 

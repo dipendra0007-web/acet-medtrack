@@ -47,6 +47,16 @@ const PatientDashboard = () => {
     relation: user.patientDetails?.emergencyContact?.relation || ''
   });
 
+  // Patient Location State
+  const [patientCountry, setPatientCountry] = useState(user.patientDetails?.country || 'India');
+  const [patientState, setPatientState] = useState(user.patientDetails?.state || '');
+  const [patientCity, setPatientCity] = useState(user.patientDetails?.city || '');
+  const [patientPincode, setPatientPincode] = useState(user.patientDetails?.pincode || '');
+  const [patientLandmark, setPatientLandmark] = useState(user.patientDetails?.landmark || '');
+
+  // Doctor area filter state
+  const [showLocalOnly, setShowLocalOnly] = useState(false);
+
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -326,7 +336,12 @@ const PatientDashboard = () => {
         allergies: allergyArr,
         conditions: conditionArr,
         emergencyContact,
-        photo
+        photo,
+        country: patientCountry,
+        state: patientState,
+        city: patientCity,
+        pincode: patientPincode,
+        landmark: patientLandmark
       });
       triggerSuccess('Medical profile details and photo updated.');
       refreshUser();
@@ -409,13 +424,33 @@ const PatientDashboard = () => {
   const activeMedications = reminders.filter(r => r.active).length;
   const pendingAppointments = appointments.filter(a => a.status === 'pending' || a.status === 'approved').length;
 
+  // Area match scoring: pincode=3, city=2, state=1
+  const getAreaMatchScore = (doc) => {
+    let score = 0;
+    if (patientPincode && doc.doctorDetails?.pincode && doc.doctorDetails.pincode === patientPincode) score += 3;
+    else if (patientCity && doc.doctorDetails?.city && doc.doctorDetails.city.toLowerCase() === patientCity.toLowerCase()) score += 2;
+    else if (patientState && doc.doctorDetails?.state && doc.doctorDetails.state.toLowerCase() === patientState.toLowerCase()) score += 1;
+    return score;
+  };
+
+  const getAreaBadge = (doc) => {
+    const score = getAreaMatchScore(doc);
+    if (score >= 3) return { label: '📍 Same Pincode', color: 'var(--success-green)' };
+    if (score === 2) return { label: '🏙️ Same City', color: 'var(--primary-blue)' };
+    if (score === 1) return { label: '🗺️ Same State', color: 'var(--accent-teal)' };
+    return null;
+  };
+
   // Filters for Doctor Search
-  const filteredDoctors = doctors.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          doc.doctorDetails?.specialization.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpec = !filterSpec || doc.doctorDetails?.specialization === filterSpec;
-    return matchesSearch && matchesSpec;
-  });
+  const filteredDoctors = doctors
+    .filter(doc => {
+      const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            doc.doctorDetails?.specialization?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSpec = !filterSpec || doc.doctorDetails?.specialization === filterSpec;
+      const matchesArea = !showLocalOnly || getAreaMatchScore(doc) > 0;
+      return matchesSearch && matchesSpec && matchesArea;
+    })
+    .sort((a, b) => getAreaMatchScore(b) - getAreaMatchScore(a));
 
   const specializations = [...new Set(doctors.map(d => d.doctorDetails?.specialization).filter(Boolean))];
 
@@ -999,6 +1034,23 @@ const PatientDashboard = () => {
                       <option key={spec} value={spec}>{spec}</option>
                     ))}
                   </select>
+                  {/* Local doctor filter toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setShowLocalOnly(!showLocalOnly)}
+                    style={{
+                      padding: '10px 16px',
+                      border: `1px solid ${showLocalOnly ? 'var(--success-green)' : 'var(--glass-border)'}`,
+                      borderRadius: '8px',
+                      background: showLocalOnly ? 'rgba(16,185,129,0.1)' : 'var(--bg-primary)',
+                      color: showLocalOnly ? 'var(--success-green)' : 'var(--text-secondary)',
+                      cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem',
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      transition: 'all 0.2s', whiteSpace: 'nowrap'
+                    }}
+                  >
+                    📍 {showLocalOnly ? 'My Area Only' : 'All Areas'}
+                  </button>
                 </div>
 
                 {/* Doctor Listing Grid */}
@@ -1019,13 +1071,25 @@ const PatientDashboard = () => {
                         gap: '16px'
                       }}>
                         <div>
-                          <h4 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Dr. {doc.name}</h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                            <h4 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Dr. {doc.name}</h4>
+                            {(() => { const badge = getAreaBadge(doc); return badge ? (
+                              <span style={{ background: `${badge.color}18`, color: badge.color, border: `1px solid ${badge.color}40`, padding: '2px 10px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 700 }}>
+                                {badge.label}
+                              </span>
+                            ) : null; })()}
+                          </div>
                           <span style={{ color: 'var(--primary-blue)', fontWeight: 600, fontSize: '0.85rem' }}>
                             Specialization: {doc.doctorDetails?.specialization} | Experience: {doc.doctorDetails?.experience} Years
                           </span>
-                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '6px' }}>
                             Clinic: {doc.doctorDetails?.clinicInfo}
                           </p>
+                          {(doc.doctorDetails?.city || doc.doctorDetails?.pincode) && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              📍 {[doc.doctorDetails?.city, doc.doctorDetails?.state, doc.doctorDetails?.pincode].filter(Boolean).join(', ')}
+                            </p>
+                          )}
                         </div>
                         <button
                           onClick={() => {
@@ -1432,6 +1496,38 @@ const PatientDashboard = () => {
                     onChange={e => setConditions(e.target.value)}
                     placeholder="E.g. Hypertension, Diabetes Type 2"
                   />
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-primary)',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--glass-border)',
+                  marginBottom: '24px'
+                }}>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>📍 Location / Address Details</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label">Country</label>
+                      <input type="text" className="form-control" value={patientCountry} onChange={e => setPatientCountry(e.target.value)} placeholder="E.g. India" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">State</label>
+                      <input type="text" className="form-control" value={patientState} onChange={e => setPatientState(e.target.value)} placeholder="E.g. Andhra Pradesh" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">City</label>
+                      <input type="text" className="form-control" value={patientCity} onChange={e => setPatientCity(e.target.value)} placeholder="E.g. Kakinada" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Pincode</label>
+                      <input type="text" className="form-control" value={patientPincode} onChange={e => setPatientPincode(e.target.value)} placeholder="E.g. 533003" />
+                    </div>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Landmark / Area</label>
+                    <input type="text" className="form-control" value={patientLandmark} onChange={e => setPatientLandmark(e.target.value)} placeholder="E.g. Near ACET Gate, Sector 4" />
+                  </div>
                 </div>
 
                 <div style={{
