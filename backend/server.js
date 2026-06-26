@@ -137,7 +137,16 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`[Express] Server is running on port ${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[Express] ❌ Port ${PORT} is already in use. Please close the other process and restart.`);
+    process.exit(1);
+  } else {
+    throw err;
+  }
 });
 
