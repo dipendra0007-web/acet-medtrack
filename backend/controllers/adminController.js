@@ -52,8 +52,20 @@ const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({});
     const cleanedUsers = users.map(u => {
-      const copy = { ...u };
+      // Use toObject() for Mongoose docs, spread for plain objects (JSON file mode)
+      const copy = typeof u.toObject === 'function' ? u.toObject() : { ...u };
       delete copy.password;
+      // Also strip large base64 doctor documents to keep response lean
+      if (copy.doctorDetails) {
+        copy.doctorDetails = { ...copy.doctorDetails };
+        delete copy.doctorDetails.licenseDocument;
+        delete copy.doctorDetails.educationQualification;
+        delete copy.doctorDetails.otherDocuments;
+      }
+      if (copy.driverDetails) {
+        copy.driverDetails = { ...copy.driverDetails };
+        delete copy.driverDetails.licensePhoto;
+      }
       return copy;
     });
     res.json(cleanedUsers);

@@ -53,26 +53,29 @@ const getDoctorsList = async (req, res) => {
   try {
     const doctors = await User.find({ role: 'doctor', doctorApproved: true });
     
-    const cleanedDoctors = doctors.map(doc => ({
-      id: doc._id,
-      name: doc.name,
-      email: doc.email,
-      photo: doc.photo,
-      doctorDetails: {
-        specialization: doc.doctorDetails?.specialization,
-        experience: doc.doctorDetails?.experience,
-        clinicInfo: doc.doctorDetails?.clinicInfo,
-        availability: doc.doctorDetails?.availability,
-        country: doc.doctorDetails?.country,
-        state: doc.doctorDetails?.state,
-        city: doc.doctorDetails?.city,
-        pincode: doc.doctorDetails?.pincode,
-        landmark: doc.doctorDetails?.landmark,
-        contactNumber: doc.doctorDetails?.contactNumber,
-        hasLicenseDocument: !!doc.doctorDetails?.licenseDocument,
-        hasEducationQualification: !!doc.doctorDetails?.educationQualification
-      }
-    }));
+    const cleanedDoctors = doctors.map(doc => {
+      const d = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+      return {
+        id: d._id,
+        name: d.name,
+        email: d.email,
+        photo: d.photo,
+        doctorDetails: {
+          specialization: d.doctorDetails?.specialization,
+          experience: d.doctorDetails?.experience,
+          clinicInfo: d.doctorDetails?.clinicInfo,
+          availability: d.doctorDetails?.availability,
+          country: d.doctorDetails?.country,
+          state: d.doctorDetails?.state,
+          city: d.doctorDetails?.city,
+          pincode: d.doctorDetails?.pincode,
+          landmark: d.doctorDetails?.landmark,
+          contactNumber: d.doctorDetails?.contactNumber,
+          hasLicenseDocument: !!d.doctorDetails?.licenseDocument,
+          hasEducationQualification: !!d.doctorDetails?.educationQualification
+        }
+      };
+    });
 
     res.json(cleanedDoctors);
   } catch (error) {

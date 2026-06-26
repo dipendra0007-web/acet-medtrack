@@ -69,7 +69,7 @@ const AdminDashboard = () => {
   }, [activeTicketData?.replies]);
 
   // Admin Data State
-  const [stats, setStats] = useState({ totalUsers: 0, totalPatients: 0, totalDoctors: 0, totalAppointments: 0, activeReminders: 0, pendingDoctors: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, totalPatients: 0, totalDoctors: 0, totalDrivers: 0, totalAppointments: 0, activeReminders: 0, pendingDoctors: 0, pendingDrivers: 0 });
   const [users, setUsers] = useState([]);
   const [logs, setLogs] = useState([]);
 
@@ -751,6 +751,7 @@ const AdminDashboard = () => {
 
   // Filtered Users List
   const filteredUsers = users.filter(u => {
+    if (!u || !u.name || !u.email) return false;
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           u.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = !roleFilter || u.role === roleFilter;

@@ -100,18 +100,21 @@ const updateDriverLocation = async (req, res) => {
 const getAvailableDrivers = async (req, res) => {
   try {
     const drivers = await User.find({ role: 'driver', 'driverDetails.approved': true });
-    const cleanedDrivers = drivers.map(d => ({
-      id: d._id,
-      name: d.name,
-      email: d.email,
-      driverDetails: {
-        vehicleName: d.driverDetails?.vehicleName,
-        vehicleNumber: d.driverDetails?.vehicleNumber,
-        licenseNumber: d.driverDetails?.licenseNumber,
-        status: d.driverDetails?.status,
-        currentLocation: d.driverDetails?.currentLocation
-      }
-    }));
+    const cleanedDrivers = drivers.map(d => {
+      const doc = typeof d.toObject === 'function' ? d.toObject() : { ...d };
+      return {
+        id: doc._id,
+        name: doc.name,
+        email: doc.email,
+        driverDetails: {
+          vehicleName: doc.driverDetails?.vehicleName,
+          vehicleNumber: doc.driverDetails?.vehicleNumber,
+          licenseNumber: doc.driverDetails?.licenseNumber,
+          status: doc.driverDetails?.status,
+          currentLocation: doc.driverDetails?.currentLocation
+        }
+      };
+    });
     res.json(cleanedDrivers);
   } catch (error) {
     console.error('Get available drivers error:', error);
