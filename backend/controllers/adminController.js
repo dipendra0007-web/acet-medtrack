@@ -272,6 +272,22 @@ const updateOrderStatus = async (req, res) => {
         'order_dispatch'
       );
       await sendNotification('admin', 'Order Dispatched 📦', `Order ${order._id.substring(0, 8)}... has been assigned to driver ${driverName} (${driverPhone}).`, 'order_dispatch');
+    } else if (status === 'Preparing') {
+      await sendNotification(
+        order.patientId,
+        'Order is Being Prepared! 📦🧪',
+        `Your medicine order is currently being prepared and packaged. We'll update you when it's shipped!`,
+        'order_preparing'
+      );
+      await sendNotification('admin', 'Order Preparing 🧪', `Order ${order._id.substring(0, 8)}... status set to Preparing.`, 'order_preparing');
+    } else if (status === 'Driver Reached') {
+      await sendNotification(
+        order.patientId,
+        'Driver Reached Your Location! 🛵📍',
+        `Driver ${order.driverName || 'assigned driver'} has arrived at your location. Please receive your order!`,
+        'order_reached'
+      );
+      await sendNotification('admin', 'Driver Arrived at Location 📍', `Driver ${order.driverName || 'assigned driver'} has reached patient ${order.patientName}'s location.`, 'order_reached');
     } else if (status === 'Delivered') {
       // Free up driver
       if (order.driverId) {

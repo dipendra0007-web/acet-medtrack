@@ -1,0 +1,105 @@
+[
+  {
+    "_id": "weib3bzck2uhly6xn6j8g",
+    "createdAt": "2026-06-28T12:05:08.161Z",
+    "updatedAt": "2026-06-28T12:05:08.161Z",
+    "websiteName": "ACET MEDTRACK",
+    "logo": "",
+    "footerLocation": "ACET Campus, NH-16, Aditya Nagar, Surampalem, East Godavari, Andhra Pradesh, India",
+    "footerPhone": "+91 8792714127",
+    "footerCopyright": "© 2026 ACET MEDTRACK – Crafted by Dipendra Upadhayay and TEAM",
+    "openingAnimationActive": true,
+    "openingAnimationText": "ACET MEDTRACK",
+    "openingAnimationLogo": "",
+    "customNavLinks": [
+      {
+        "label": "Home",
+        "path": "/"
+      },
+      {
+        "label": "About Us",
+        "path": "/about"
+      },
+      {
+        "label": "Services",
+        "path": "/services"
+      },
+      {
+        "label": "Our Team",
+        "path": "/team"
+      },
+      {
+        "label": "Gallery",
+        "path": "/gallery"
+      },
+      {
+        "label": "Shop",
+        "path": "/shop"
+      },
+      {
+        "label": "Contact Us",
+        "path": "/contact"
+      }
+    ],
+    "patientRequireAge": false,
+    "patientRequireGender": false,
+    "patientRequireBloodGroup": false,
+    "patientRequireAllergies": false,
+    "driverRequireAge": true,
+    "driverRequireLicensePhoto": true,
+    "driverRequireVehicleDetails": true,
+    "doctorRequireSpecialization": true,
+    "doctorRequireExperience": true,
+    "doctorRequireLicenseDocument": true,
+    "heroBadge": "Aditya College of Engineering & Technology",
+    "heroTitle": "Your Health, Our Priority",
+    "heroSubtitle": "Welcome to ACET MEDTRACK — a unified digital healthcare ecosystem linking patients, doctors, and family guardians to automate medication routines and protect medical histories.",
+    "aboutTitle": "About ACFET MEDTRACK",
+    "aboutSubtitle": "ACFET MEDTRACK is a full-stack, production-ready healthcare management web portal engineered by the students of Aditya College of Engineering & Technology (ACFET).",
+    "aboutPillar1Title": "Data Security First",
+    "aboutPillar1Desc": "All records, reports, and logins are guarded by custom JWT checks and cryptographically hashed credentials.",
+    "aboutPillar2Title": "Digital Transformation",
+    "aboutPillar2Desc": "Replacing ancient paper-based records with structured digital prescriptions, analytics, and automated reminders.",
+    "aboutPillar3Title": "Student Innovation",
+    "aboutPillar3Desc": "Engineered from scratch using modern web practices to represent practical technical problem-solving.",
+    "contactEmail": "dipendra@steptrendy.com",
+    "services": [
+      {
+        "iconName": "Clock",
+        "title": "Audible Medicine Alarms",
+        "desc": "Set exact schedules, dosage quantities, and directions. The platform plays synthesizer alarm chimes and displays full-screen browser modals to keep you on schedule.",
+        "color": "var(--primary-blue)"
+      },
+      {
+        "iconName": "Shield",
+        "title": "Digital Health Records",
+        "desc": "Securely upload and categorize laboratory results, clinic summaries, and medical reports. Patients control sharing permissions with doctors.",
+        "color": "var(--accent-teal)"
+      },
+      {
+        "iconName": "Users",
+        "title": "Parent/Guardian Access",
+        "desc": "Authorize parents using custom usernames/passwords. Parents get a tailored viewing dashboard with real-time sync of active medication compliance.",
+        "color": "var(--primary-blue)"
+      },
+      {
+        "iconName": "Heart",
+        "title": "Doctor Booking Channel",
+        "desc": "Browse approved specialists, check consultation times, and submit appointments. Doctors accept, reject, or suggest timeslots.",
+        "color": "var(--danger-red)"
+      },
+      {
+        "iconName": "Clipboard",
+        "title": "Digital Prescriptions",
+        "desc": "Doctor-written prescriptions synchronize automatically with patient medication reminders, ensuring zero manual scheduling errors.",
+        "color": "var(--accent-teal)"
+      },
+      {
+        "iconName": "Moon",
+        "title": "Dark & Light Mode Integration",
+        "desc": "Toggle interface themes seamlessly to match environmental lighting. Designed with accessible contrast ratios for elderly patients.",
+        "color": "var(--warning-orange)"
+      }
+    ]
+  }
+]

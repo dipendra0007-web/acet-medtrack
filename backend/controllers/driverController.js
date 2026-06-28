@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
 const { logEvent } = require('../utils/logger');
+const { sendNotification } = require('../utils/notifier');
 
 // @desc    Get driver dashboard data
 // @route   GET /api/driver/dashboard
@@ -14,7 +15,7 @@ const getDriverDashboard = async (req, res) => {
 
     // Fetch orders assigned to this driver
     const allOrders = await Order.find({ driverId: req.user.id });
-    const activeOrders = allOrders.filter(o => o.status === 'Out for Delivery');
+    const activeOrders = allOrders.filter(o => o.status === 'Out for Delivery' || o.status === 'Driver Reached');
     const deliveredOrders = allOrders.filter(o => o.status === 'Delivered');
 
     res.json({
@@ -122,9 +123,47 @@ const getAvailableDrivers = async (req, res) => {
   }
 };
 
+// @desc    Update status of assigned order
+// @route   PUT /api/driver/orders/:id/status
+// @access  Private (Driver)
+const updateAssignedOrderStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  try {
+    const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.driverId !== req.user.id) {
+      return res.status(403).json({ message: 'You are not assigned to this order' });
+    }
+
+    const setPayload = { status };
+    if (status === 'Driver Reached') {
+      await sendNotification(
+        order.patientId,
+        'Driver Reached Your Location! 🛵📍',
+        `Driver ${order.driverName} has arrived at your location. Please receive your order!`,
+        'order_reached'
+      );
+      await sendNotification('admin', 'Driver Arrived at Location 📍', `Driver ${order.driverName} has reached patient ${order.patientName}'s location.`, 'order_reached');
+    } else if (status === 'Delivered') {
+      await User.findByIdAndUpdate(req.user.id, { $set: { 'driverDetails.status': 'active' } });
+      await sendNotification(order.patientId, 'Order Delivered! 🎉', `Your medicine order has been successfully delivered by ${order.driverName}. Thank you for choosing MedTrack!`, 'order_dispatch');
+      await sendNotification('admin', 'Order Completed ✅', `Order ${order._id.substring(0, 8)}... has been successfully delivered to patient ${order.patientName}.`, 'order_dispatch');
+    }
+
+    const updated = await Order.findByIdAndUpdate(id, { $set: setPayload }, { new: true });
+    await logEvent('ORDER_STATUS_UPDATED', req.user.id, req.user.name, req.user.role, `Driver updated order ${order._id} status to ${status}`);
+    res.json(updated);
+  } catch (error) {
+    console.error('Driver order status update error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getDriverDashboard,
   updateDriverStatus,
   updateDriverLocation,
-  getAvailableDrivers
+  getAvailableDrivers,
+  updateAssignedOrderStatus
 };

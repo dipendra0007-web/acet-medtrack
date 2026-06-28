@@ -17,7 +17,7 @@ const orderSchema = new mongoose.Schema({
   address: { type: String, required: true },
   floorName: { type: String, required: true },
   coordinates: { type: String, required: true }, // "lat, lng" representation
-  status: { type: String, enum: ['Received', 'Out for Delivery', 'Delivered'], default: 'Received' },
+  status: { type: String, enum: ['Received', 'Preparing', 'Out for Delivery', 'Driver Reached', 'Delivered'], default: 'Received' },
   driverId: { type: String },      // Reference to registered driver user ID
   driverName: { type: String },
   driverPhone: { type: String },

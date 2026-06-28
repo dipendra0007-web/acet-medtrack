@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // Trigger reload
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -117,7 +117,65 @@ app.get('/api/public/settings', async (req, res) => {
         driverRequireVehicleDetails: true,
         doctorRequireSpecialization: true,
         doctorRequireExperience: true,
-        doctorRequireLicenseDocument: true
+        doctorRequireLicenseDocument: true,
+        
+        // Home (Hero section) content
+        heroBadge: 'Aditya College of Engineering & Technology',
+        heroTitle: 'Your Health, Our Priority',
+        heroSubtitle: 'Welcome to ACET MEDTRACK — a unified digital healthcare ecosystem linking patients, doctors, and family guardians to automate medication routines and protect medical histories.',
+        
+        // About Us section content
+        aboutTitle: 'About ACFET MEDTRACK',
+        aboutSubtitle: 'ACFET MEDTRACK is a full-stack, production-ready healthcare management web portal engineered by the students of Aditya College of Engineering & Technology (ACFET).',
+        aboutPillar1Title: 'Data Security First',
+        aboutPillar1Desc: 'All records, reports, and logins are guarded by custom JWT checks and cryptographically hashed credentials.',
+        aboutPillar2Title: 'Digital Transformation',
+        aboutPillar2Desc: 'Replacing ancient paper-based records with structured digital prescriptions, analytics, and automated reminders.',
+        aboutPillar3Title: 'Student Innovation',
+        aboutPillar3Desc: 'Engineered from scratch using modern web practices to represent practical technical problem-solving.',
+        
+        // Contact details
+        contactEmail: 'dipendra@steptrendy.com',
+        
+        // Services list content
+        services: [
+          {
+            iconName: "Clock",
+            title: "Audible Medicine Alarms",
+            desc: "Set exact schedules, dosage quantities, and directions. The platform plays synthesizer alarm chimes and displays full-screen browser modals to keep you on schedule.",
+            color: "var(--primary-blue)"
+          },
+          {
+            iconName: "Shield",
+            title: "Digital Health Records",
+            desc: "Securely upload and categorize laboratory results, clinic summaries, and medical reports. Patients control sharing permissions with doctors.",
+            color: "var(--accent-teal)"
+          },
+          {
+            iconName: "Users",
+            title: "Parent/Guardian Access",
+            desc: "Authorize parents using custom usernames/passwords. Parents get a tailored viewing dashboard with real-time sync of active medication compliance.",
+            color: "var(--primary-blue)"
+          },
+          {
+            iconName: "Heart",
+            title: "Doctor Booking Channel",
+            desc: "Browse approved specialists, check consultation times, and submit appointments. Doctors accept, reject, or suggest timeslots.",
+            color: "var(--danger-red)"
+          },
+          {
+            iconName: "Clipboard",
+            title: "Digital Prescriptions",
+            desc: "Doctor-written prescriptions synchronize automatically with patient medication reminders, ensuring zero manual scheduling errors.",
+            color: "var(--accent-teal)"
+          },
+          {
+            iconName: "Moon",
+            title: "Dark & Light Mode Integration",
+            desc: "Toggle interface themes seamlessly to match environmental lighting. Designed with accessible contrast ratios for elderly patients.",
+            color: "var(--warning-orange)"
+          }
+        ]
       });
     }
     res.json(settings);

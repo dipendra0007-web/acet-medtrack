@@ -33,7 +33,35 @@ const webSettingSchema = new mongoose.Schema({
   
   doctorRequireSpecialization: { type: Boolean, default: true },
   doctorRequireExperience: { type: Boolean, default: true },
-  doctorRequireLicenseDocument: { type: Boolean, default: true }
+  doctorRequireLicenseDocument: { type: Boolean, default: true },
+
+  // Home (Hero section) content
+  heroBadge: { type: String, default: 'Aditya College of Engineering & Technology' },
+  heroTitle: { type: String, default: 'Your Health, Our Priority' },
+  heroSubtitle: { type: String, default: 'Welcome to ACET MEDTRACK — a unified digital healthcare ecosystem linking patients, doctors, and family guardians to automate medication routines and protect medical histories.' },
+  
+  // About Us section content
+  aboutTitle: { type: String, default: 'About ACFET MEDTRACK' },
+  aboutSubtitle: { type: String, default: 'ACFET MEDTRACK is a full-stack, production-ready healthcare management web portal engineered by the students of Aditya College of Engineering & Technology (ACFET).' },
+  aboutPillar1Title: { type: String, default: 'Data Security First' },
+  aboutPillar1Desc: { type: String, default: 'All records, reports, and logins are guarded by custom JWT checks and cryptographically hashed credentials.' },
+  aboutPillar2Title: { type: String, default: 'Digital Transformation' },
+  aboutPillar2Desc: { type: String, default: 'Replacing ancient paper-based records with structured digital prescriptions, analytics, and automated reminders.' },
+  aboutPillar3Title: { type: String, default: 'Student Innovation' },
+  aboutPillar3Desc: { type: String, default: 'Engineered from scratch using modern web practices to represent practical technical problem-solving.' },
+
+  // Contact details
+  contactEmail: { type: String, default: 'dipendra@steptrendy.com' },
+
+  // Services list content
+  services: [
+    {
+      iconName: { type: String, required: true },
+      title: { type: String, required: true },
+      desc: { type: String, required: true },
+      color: { type: String, default: 'var(--primary-blue)' }
+    }
+  ]
 }, { timestamps: true });
 
 module.exports = createModel('WebSetting', webSettingSchema);

@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { Heart, Shield, Clock, Users, ArrowRight, Star, Send } from 'lucide-react';
 import GlassCard from '../components/GlassCard';
 import { api, API_BASE_URL } from '../utils/api';
+import { useSettings } from '../context/SettingsContext';
 
 const Home = () => {
+  const { settings } = useSettings();
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
@@ -234,7 +236,7 @@ const Home = () => {
             letterSpacing: '0.1em',
             marginBottom: '24px'
           }}>
-            Aditya College of Engineering & Technology
+            {settings?.heroBadge || 'Aditya College of Engineering & Technology'}
           </span>
           
           <h1 style={{
@@ -244,16 +246,16 @@ const Home = () => {
             color: 'var(--text-primary)',
             marginBottom: '20px'
           }}>
-            Your Health, <span style={{ color: 'var(--primary-blue)' }}>Our Priority</span>
+            {settings?.heroTitle || 'Your Health, Our Priority'}
           </h1>
           
           <p style={{
-            fontSize: 'calc(1rem + 0.25vw)',
+            fontSize: 'calc(1.05rem + 0.1vw)',
             color: 'var(--text-secondary)',
             marginBottom: '36px',
             lineHeight: 1.6
           }}>
-            Welcome to **ACET MEDTRACK** — a unified digital healthcare ecosystem linking patients, doctors, and family guardians to automate medication routines and protect medical histories.
+            {settings?.heroSubtitle || 'Welcome to ACET MEDTRACK — a unified digital healthcare ecosystem linking patients, doctors, and family guardians to automate medication routines and protect medical histories.'}
           </p>
 
           <div style={{

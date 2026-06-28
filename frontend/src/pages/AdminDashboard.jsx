@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api, API_BASE_URL } from '../utils/api';
 import GlassCard from '../components/GlassCard';
 import { 
-  Shield, Users, UserCheck, Calendar, Bell, FileText, Download, Trash2, Search, Check, X, AlertTriangle, Plus, Edit, Phone, Mail, MessageSquare, Image, Video, ShoppingBag, ShoppingCart, MapPin, Monitor, Truck, Navigation, Clock, Send, User, ArrowLeft, Settings
+  Shield, Users, UserCheck, Calendar, Bell, FileText, Download, Trash2, Search, Check, X, AlertTriangle, Plus, Edit, Phone, Mail, MessageSquare, Image, Video, ShoppingBag, ShoppingCart, MapPin, Monitor, Truck, Navigation, Clock, Send, User, ArrowLeft, Settings, Home
 } from 'lucide-react';
+import { playBuzzer } from '../utils/audio';
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
 
@@ -192,8 +193,41 @@ const AdminDashboard = () => {
   const [linkEditorOpen, setLinkEditorOpen] = useState(false);
   const [isEditingLink, setIsEditingLink] = useState(false);
   const [editingLinkIdx, setEditingLinkIdx] = useState(null);
+  const [newLinkLabel, setNewLinkLabel] = useState('');
+  const [newLinkPath, setNewLinkPath] = useState('');
+
+  // Home (Hero) Editor States
+  const [heroBadge, setHeroBadge] = useState('');
+  const [heroTitle, setHeroTitle] = useState('');
+  const [heroSubtitle, setHeroSubtitle] = useState('');
+
+  // About Us Editor States
+  const [aboutTitle, setAboutTitle] = useState('');
+  const [aboutSubtitle, setAboutSubtitle] = useState('');
+  const [aboutPillar1Title, setAboutPillar1Title] = useState('');
+  const [aboutPillar1Desc, setAboutPillar1Desc] = useState('');
+  const [aboutPillar2Title, setAboutPillar2Title] = useState('');
+  const [aboutPillar2Desc, setAboutPillar2Desc] = useState('');
+  const [aboutPillar3Title, setAboutPillar3Title] = useState('');
+  const [aboutPillar3Desc, setAboutPillar3Desc] = useState('');
+
+  // Contact Editor State
+  const [contactEmail, setContactEmail] = useState('');
+
+  // Services Editor States
+  const [servicesList, setServicesList] = useState([]);
+  const [editingServiceIdx, setEditingServiceIdx] = useState(null);
+  const [serviceTitle, setServiceTitle] = useState('');
+  const [serviceDesc, setServiceDesc] = useState('');
+  const [serviceIcon, setServiceIcon] = useState('Clock');
+  const [serviceColor, setServiceColor] = useState('var(--primary-blue)');
   const [linkLabel, setLinkLabel] = useState('');
   const [linkPath, setLinkPath] = useState('');
+
+  // Refs for tracking counts to sound buzzer alarms
+  const prevPendingOrdersCount = useRef(null);
+  const prevPendingDriversCount = useRef(null);
+  const prevPendingDoctorsCount = useRef(null);
 
   const fetchAdminWebSettings = async () => {
     try {
@@ -222,6 +256,23 @@ const AdminDashboard = () => {
         setDocReqSpec(data.doctorRequireSpecialization ?? true);
         setDocReqExp(data.doctorRequireExperience ?? true);
         setDocReqLicense(data.doctorRequireLicenseDocument ?? true);
+
+        // Load new pages customizer properties
+        setHeroBadge(data.heroBadge || 'Aditya College of Engineering & Technology');
+        setHeroTitle(data.heroTitle || 'Your Health, Our Priority');
+        setHeroSubtitle(data.heroSubtitle || 'Welcome to ACET MEDTRACK...');
+        
+        setAboutTitle(data.aboutTitle || 'About ACFET MEDTRACK');
+        setAboutSubtitle(data.aboutSubtitle || 'ACFET MEDTRACK is a full-stack...');
+        setAboutPillar1Title(data.aboutPillar1Title || 'Data Security First');
+        setAboutPillar1Desc(data.aboutPillar1Desc || 'All records, reports, and logins are guarded by custom JWT...');
+        setAboutPillar2Title(data.aboutPillar2Title || 'Digital Transformation');
+        setAboutPillar2Desc(data.aboutPillar2Desc || 'Replacing ancient paper-based records...');
+        setAboutPillar3Title(data.aboutPillar3Title || 'Student Innovation');
+        setAboutPillar3Desc(data.aboutPillar3Desc || 'Engineered from scratch...');
+        
+        setContactEmail(data.contactEmail || 'dipendra@steptrendy.com');
+        setServicesList(data.services || []);
       }
     } catch (err) {
       console.error('Failed to load admin settings:', err);
@@ -229,7 +280,7 @@ const AdminDashboard = () => {
   };
 
   const handleSaveWebSettings = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     try {
       const payload = {
         websiteName: siteName,
@@ -253,10 +304,27 @@ const AdminDashboard = () => {
         
         doctorRequireSpecialization: docReqSpec,
         doctorRequireExperience: docReqExp,
-        doctorRequireLicenseDocument: docReqLicense
+        doctorRequireLicenseDocument: docReqLicense,
+
+        // Save pages customizer properties
+        heroBadge,
+        heroTitle,
+        heroSubtitle,
+        
+        aboutTitle,
+        aboutSubtitle,
+        aboutPillar1Title,
+        aboutPillar1Desc,
+        aboutPillar2Title,
+        aboutPillar2Desc,
+        aboutPillar3Title,
+        aboutPillar3Desc,
+        
+        contactEmail,
+        services: servicesList
       };
       const updated = await api.post('/admin/settings', payload);
-      alert('Website configurations and sign-up requirements saved successfully! Refresh page to see changes.');
+      alert('Website configurations saved successfully!');
       setWebSettings(updated);
     } catch (err) {
       console.error('Failed to update web settings:', err);
@@ -340,13 +408,22 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchAdminData();
     fetchNotifications();
-    // Poll for new notifications every 30 seconds
-    const notifInterval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(notifInterval);
+    // Poll for new notifications and stats every 800ms (less than a second) for real-time tracking
+    const pollInterval = setInterval(() => {
+      fetchAdminData();
+      fetchNotifications();
+    }, 800);
+    return () => clearInterval(pollInterval);
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'customization') {
+    if (
+      activeTab === 'customization' || 
+      activeTab === 'home-nav' || 
+      activeTab === 'about-nav' || 
+      activeTab === 'contact-nav' || 
+      activeTab === 'services-nav'
+    ) {
       fetchAdminWebSettings();
     }
   }, [activeTab]);
@@ -466,8 +543,19 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     try {
       const data = await api.get('/admin/dashboard');
-      setStats(data.stats);
+      const newStats = data.stats;
+      setStats(newStats);
       setLogs(data.recentLogs);
+
+      if (prevPendingDoctorsCount.current !== null && newStats.pendingDoctors > prevPendingDoctorsCount.current) {
+        playBuzzer('alarm');
+      }
+      prevPendingDoctorsCount.current = newStats.pendingDoctors;
+
+      if (prevPendingDriversCount.current !== null && newStats.pendingDrivers > prevPendingDriversCount.current) {
+        playBuzzer('alarm');
+      }
+      prevPendingDriversCount.current = newStats.pendingDrivers;
     } catch (err) {
       console.error('Failed to load admin stats & logs:', err);
     }
@@ -510,6 +598,12 @@ const AdminDashboard = () => {
     try {
       const ordersData = await api.get('/admin/orders');
       setAdminOrders(ordersData);
+
+      const pendingOrdersCount = ordersData.filter(o => o.status === 'Received').length;
+      if (prevPendingOrdersCount.current !== null && pendingOrdersCount > prevPendingOrdersCount.current) {
+        playBuzzer('alarm');
+      }
+      prevPendingOrdersCount.current = pendingOrdersCount;
     } catch (err) {
       console.error('Failed to load admin orders:', err);
     }
@@ -1462,6 +1556,10 @@ const AdminDashboard = () => {
             { id: 'homepage-ads', name: 'Homepage Ad Manager', icon: <Monitor size={16} /> },
             { id: 'collaborators', name: 'Collaborators Panel', icon: <Users size={16} /> },
             { id: 'customization', name: 'Site Customization', icon: <Settings size={16} /> },
+            { id: 'home-nav', name: 'Home Hero Editor', icon: <Home size={16} /> },
+            { id: 'about-nav', name: 'About Us Editor', icon: <FileText size={16} /> },
+            { id: 'contact-nav', name: 'Contact Info Editor', icon: <Phone size={16} /> },
+            { id: 'services-nav', name: 'Services Editor', icon: <Settings size={16} /> },
             { id: 'reset', name: 'Factory Reset', icon: <span style={{fontSize:'14px'}}>🔄</span> }
           ].map(tab => (
             <button
@@ -2802,15 +2900,19 @@ const AdminDashboard = () => {
                             fontWeight: 700,
                             background: 
                               order.status === 'Delivered' ? 'rgba(16, 185, 129, 0.1)' :
-                              order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                              order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.1)' :
+                              order.status === 'Driver Reached' ? 'rgba(20, 184, 166, 0.15)' :
+                              order.status === 'Preparing' ? 'rgba(147, 51, 234, 0.1)' : 'rgba(245, 158, 11, 0.1)',
                             color: 
                               order.status === 'Delivered' ? 'var(--success-green)' :
-                              order.status === 'Out for Delivery' ? 'var(--primary-blue)' : 'var(--warning-orange)'
+                              order.status === 'Out for Delivery' ? 'var(--primary-blue)' :
+                              order.status === 'Driver Reached' ? 'var(--accent-teal)' :
+                              order.status === 'Preparing' ? '#9333ea' : 'var(--warning-orange)'
                           }}>
                             {order.status}
                           </span>
                           
-                          {order.status === 'Out for Delivery' && (
+                          {(order.status === 'Out for Delivery' || order.status === 'Driver Reached') && (
                             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                               Driver: {order.driverName} ({order.driverPhone})
                             </div>
@@ -2820,6 +2922,15 @@ const AdminDashboard = () => {
                           <div style={{ display: 'inline-flex', gap: '6px' }}>
                             {order.status === 'Received' && (
                               <button
+                                onClick={() => handleUpdateOrderStatus(order._id, 'Preparing')}
+                                className="btn btn-secondary"
+                                style={{ padding: '6px 10px', fontSize: '0.75rem', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning-orange)' }}
+                              >
+                                Mark Preparing
+                              </button>
+                            )}
+                            {order.status === 'Preparing' && (
+                              <button
                                 onClick={() => handleUpdateOrderStatus(order._id, 'Out for Delivery')}
                                 className="btn btn-primary"
                                 style={{ padding: '6px 10px', fontSize: '0.75rem' }}
@@ -2827,7 +2938,7 @@ const AdminDashboard = () => {
                                 Ship Order
                               </button>
                             )}
-                            {order.status === 'Out for Delivery' && (
+                            {(order.status === 'Out for Delivery' || order.status === 'Driver Reached') && (
                               <button
                                 onClick={() => handleUpdateOrderStatus(order._id, 'Delivered')}
                                 className="btn btn-teal"
@@ -4117,6 +4228,385 @@ const AdminDashboard = () => {
                 Save Site Configurations
               </button>
             </form>
+          </GlassCard>
+        )}
+
+        {/* Home Hero Editor Panel */}
+        {activeTab === 'home-nav' && (
+          <GlassCard>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Home size={24} style={{ color: 'var(--primary-blue)' }} /> Dynamic Home Hero Editor
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+              Edit and customize the main landing hero section. Changes render on the public homepage immediately.
+            </p>
+
+            <form onSubmit={handleSaveWebSettings} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="form-group">
+                <label className="form-label">Hero Badge / Institution Tagline</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={heroBadge}
+                  onChange={e => setHeroBadge(e.target.value)}
+                  placeholder="E.g. Aditya College of Engineering & Technology"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Hero Header Title</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={heroTitle}
+                  onChange={e => setHeroTitle(e.target.value)}
+                  placeholder="E.g. Your Health, Our Priority"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Hero Paragraph Subtitle</label>
+                <textarea
+                  className="form-control"
+                  rows="4"
+                  value={heroSubtitle}
+                  onChange={e => setHeroSubtitle(e.target.value)}
+                  placeholder="Welcome message describing the platform..."
+                  required
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-teal"
+                style={{ alignSelf: 'flex-start', padding: '10px 20px', fontWeight: 700 }}
+              >
+                Save Hero Section Customizations
+              </button>
+            </form>
+          </GlassCard>
+        )}
+
+        {/* About Us Page Editor Panel */}
+        {activeTab === 'about-nav' && (
+          <GlassCard>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <FileText size={24} style={{ color: 'var(--primary-blue)' }} /> About Us Page Content Editor
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+              Edit the main About Us section headers and the three key student innovation project pillars.
+            </p>
+
+            <form onSubmit={handleSaveWebSettings} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Introduction Details */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px' }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--primary-blue)' }}>
+                  📖 Introduction Details
+                </h4>
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label className="form-label">About Page Title</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={aboutTitle}
+                    onChange={e => setAboutTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">About Page Introduction text</label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    value={aboutSubtitle}
+                    onChange={e => setAboutSubtitle(e.target.value)}
+                    required
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Pillars Details */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px' }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--primary-blue)' }}>
+                  🛡️ Three Innovation Pillars
+                </h4>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Pillar 1 */}
+                  <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                    <h5 style={{ fontSize: '0.88rem', color: 'var(--accent-teal)', marginBottom: '8px' }}>Pillar 1</h5>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+                      <input type="text" className="form-control" value={aboutPillar1Title} onChange={e => setAboutPillar1Title(e.target.value)} placeholder="Title" required />
+                      <input type="text" className="form-control" value={aboutPillar1Desc} onChange={e => setAboutPillar1Desc(e.target.value)} placeholder="Description" required />
+                    </div>
+                  </div>
+
+                  {/* Pillar 2 */}
+                  <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
+                    <h5 style={{ fontSize: '0.88rem', color: 'var(--accent-teal)', marginBottom: '8px' }}>Pillar 2</h5>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+                      <input type="text" className="form-control" value={aboutPillar2Title} onChange={e => setAboutPillar2Title(e.target.value)} placeholder="Title" required />
+                      <input type="text" className="form-control" value={aboutPillar2Desc} onChange={e => setAboutPillar2Desc(e.target.value)} placeholder="Description" required />
+                    </div>
+                  </div>
+
+                  {/* Pillar 3 */}
+                  <div>
+                    <h5 style={{ fontSize: '0.88rem', color: 'var(--accent-teal)', marginBottom: '8px' }}>Pillar 3</h5>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+                      <input type="text" className="form-control" value={aboutPillar3Title} onChange={e => setAboutPillar3Title(e.target.value)} placeholder="Title" required />
+                      <input type="text" className="form-control" value={aboutPillar3Desc} onChange={e => setAboutPillar3Desc(e.target.value)} placeholder="Description" required />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-teal" style={{ alignSelf: 'flex-start', padding: '10px 20px', fontWeight: 700 }}>
+                Save About Us Content
+              </button>
+            </form>
+          </GlassCard>
+        )}
+
+        {/* Contact Info Editor Panel */}
+        {activeTab === 'contact-nav' && (
+          <GlassCard>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Phone size={24} style={{ color: 'var(--primary-blue)' }} /> Contact Details & Footer Content Editor
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+              Customize campus address, support telephone numbers, official email, and footer copyright messages.
+            </p>
+
+            <form onSubmit={handleSaveWebSettings} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Support Telephone Number</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={footPhone}
+                    onChange={e => setFootPhone(e.target.value)}
+                    placeholder="+91 8792714127"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Official Enquiry Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    value={contactEmail}
+                    onChange={e => setContactEmail(e.target.value)}
+                    placeholder="dipendra@steptrendy.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Campus Physical Address / Location</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={footLoc}
+                  onChange={e => setFootLoc(e.target.value)}
+                  placeholder="Campus address details..."
+                  required
+                ></textarea>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Website Copyright Info</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={footCopyright}
+                  onChange={e => setFootCopyright(e.target.value)}
+                  placeholder="© 2026 Medtrack copyright text..."
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn btn-teal" style={{ alignSelf: 'flex-start', padding: '10px 20px', fontWeight: 700 }}>
+                Save Contact Info
+              </button>
+            </form>
+          </GlassCard>
+        )}
+
+        {/* Services List Editor Panel */}
+        {activeTab === 'services-nav' && (
+          <GlassCard>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Settings size={24} style={{ color: 'var(--primary-blue)' }} /> Platform Services & Features Configurator
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+              Manage features rendered on the public Services page. Add new services, pick an icon class, or modify description texts.
+            </p>
+
+            {/* Add / Edit Form */}
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--primary-blue)' }}>
+                {editingServiceIdx !== null ? '✏️ Edit Service Details' : '➕ Add New Service Option'}
+              </h4>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }} className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Service Title *</label>
+                  <input type="text" className="form-control" value={serviceTitle} onChange={e => setServiceTitle(e.target.value)} placeholder="E.g. Live GPS Dispatch" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Service Color Tone</label>
+                  <select className="form-control" value={serviceColor} onChange={e => setServiceColor(e.target.value)} style={{ padding: '10px' }}>
+                    <option value="var(--primary-blue)">Primary Blue</option>
+                    <option value="var(--accent-teal)">Accent Teal</option>
+                    <option value="var(--danger-red)">Danger Red</option>
+                    <option value="var(--warning-orange)">Warning Orange</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }} className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Select Icon Theme Class *</label>
+                  <select className="form-control" value={serviceIcon} onChange={e => setServiceIcon(e.target.value)} style={{ padding: '10px' }}>
+                    <option value="Clock">Clock (Medication Alarms)</option>
+                    <option value="Shield">Shield (Security/Records)</option>
+                    <option value="Users">Users (Parent Access)</option>
+                    <option value="Heart">Heart (Doctor Booking)</option>
+                    <option value="Clipboard">Clipboard (Prescriptions)</option>
+                    <option value="Moon">Moon (Themes Toggle)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Service Description *</label>
+                  <input type="text" className="form-control" value={serviceDesc} onChange={e => setServiceDesc(e.target.value)} placeholder="Summarize service capability..." />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!serviceTitle || !serviceDesc) return alert('Title and description are required!');
+                    const newItem = {
+                      iconName: serviceIcon,
+                      title: serviceTitle,
+                      desc: serviceDesc,
+                      color: serviceColor
+                    };
+                    let updated = [...servicesList];
+                    if (editingServiceIdx !== null) {
+                      updated[editingServiceIdx] = newItem;
+                      setEditingServiceIdx(null);
+                    } else {
+                      updated.push(newItem);
+                    }
+                    setServicesList(updated);
+                    setServiceTitle('');
+                    setServiceDesc('');
+                    setServiceIcon('Clock');
+                    setServiceColor('var(--primary-blue)');
+                  }}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                >
+                  {editingServiceIdx !== null ? 'Apply Changes' : 'Add to Services List'}
+                </button>
+                {editingServiceIdx !== null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingServiceIdx(null);
+                      setServiceTitle('');
+                      setServiceDesc('');
+                      setServiceIcon('Clock');
+                      setServiceColor('var(--primary-blue)');
+                    }}
+                    className="btn btn-secondary"
+                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* List Table */}
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>Configured Services</h4>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 8px' }}>Icon Class</th>
+                    <th style={{ padding: '10px 8px' }}>Title</th>
+                    <th style={{ padding: '10px 8px' }}>Description</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {servicesList.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '20px 8px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        No services configured. Seed default ones by saving or click add above!
+                      </td>
+                    </tr>
+                  ) : (
+                    servicesList.map((svc, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                        <td style={{ padding: '12px 8px', color: svc.color, fontWeight: 700 }}>
+                          {svc.iconName}
+                        </td>
+                        <td style={{ padding: '12px 8px', fontWeight: 600 }}>{svc.title}</td>
+                        <td style={{ padding: '12px 8px', color: 'var(--text-secondary)', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {svc.desc}
+                        </td>
+                        <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '8px' }}>
+                            <button
+                              onClick={() => {
+                                setEditingServiceIdx(idx);
+                                setServiceTitle(svc.title);
+                                setServiceDesc(svc.desc);
+                                setServiceIcon(svc.iconName);
+                                setServiceColor(svc.color || 'var(--primary-blue)');
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('Are you sure you want to remove this service?')) {
+                                  const updated = servicesList.filter((_, i) => i !== idx);
+                                  setServicesList(updated);
+                                }
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '0.75rem', color: 'var(--danger-red)' }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <button
+              onClick={() => handleSaveWebSettings()}
+              className="btn btn-teal"
+              style={{ marginTop: '24px', padding: '10px 20px', fontWeight: 700 }}
+            >
+              Save & Publish Services List to Public Website
+            </button>
           </GlassCard>
         )}
 

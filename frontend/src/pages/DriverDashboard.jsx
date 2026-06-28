@@ -6,6 +6,7 @@ import {
   Truck, Package, CheckCircle, MapPin, Phone, Car, User,
   Navigation, Activity, Clock, AlertCircle, ToggleLeft, ToggleRight, Map
 } from 'lucide-react';
+import { playBuzzer } from '../utils/audio';
 
 const DriverDashboard = () => {
   const { user, refreshUser } = useAuth();
@@ -17,20 +18,31 @@ const DriverDashboard = () => {
   const [locationSyncing, setLocationSyncing] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const prevActiveOrdersCount = useRef(null);
 
   useEffect(() => {
     fetchDriverData();
-    // Auto-sync location on mount
     syncLocation();
+    
+    // Poll driver dashboard data every 800ms for <1s real-time live sync
+    const pollInterval = setInterval(fetchDriverData, 800);
+    return () => clearInterval(pollInterval);
   }, []);
 
   const fetchDriverData = async () => {
     try {
       const data = await api.get('/driver/dashboard');
       setStats(data.stats);
-      setActiveOrders(data.activeOrders || []);
+      
+      const orders = data.activeOrders || [];
+      setActiveOrders(orders);
       setDeliveryHistory(data.deliveryHistory || []);
       setDriverStatus(data.driver?.driverDetails?.status || 'active');
+
+      if (prevActiveOrdersCount.current !== null && orders.length > prevActiveOrdersCount.current) {
+        playBuzzer('alarm');
+      }
+      prevActiveOrdersCount.current = orders.length;
     } catch (err) {
       console.error('Failed to load driver data:', err);
     }
@@ -57,6 +69,16 @@ const DriverDashboard = () => {
       () => setLocationSyncing(false),
       { timeout: 5000 }
     );
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await api.put(`/driver/orders/${orderId}/status`, { status: newStatus });
+      triggerSuccess(`Order status updated to "${newStatus}"!`);
+      fetchDriverData();
+    } catch (err) {
+      triggerError(err.message || 'Failed to update order status');
+    }
   };
 
   const handleToggleStatus = async () => {
@@ -184,7 +206,11 @@ const DriverDashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <span style={{ background: 'var(--warning-orange)', color: 'white', borderRadius: '6px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700 }}>OUT FOR DELIVERY</span>
+                        {order.status === 'Driver Reached' ? (
+                          <span style={{ background: 'var(--accent-teal)', color: 'white', borderRadius: '6px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700 }}>ARRIVED AT LOCATION</span>
+                        ) : (
+                          <span style={{ background: 'var(--warning-orange)', color: 'white', borderRadius: '6px', padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700 }}>OUT FOR DELIVERY</span>
+                        )}
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>#{order._id?.substring(0, 10)}</span>
                       </div>
                       <h4 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Patient: {order.patientName}</h4>
@@ -231,8 +257,30 @@ const DriverDashboard = () => {
                   </div>
 
                   {/* Order Items */}
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '14px' }}>
                     <strong>Items:</strong> {order.items?.map(i => `${i.name} x${i.quantity}`).join(', ')}
+                  </div>
+
+                  {/* Delivery Actions */}
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {order.status === 'Out for Delivery' && (
+                      <button
+                        onClick={() => handleUpdateOrderStatus(order._id, 'Driver Reached')}
+                        className="btn btn-primary"
+                        style={{ padding: '10px 16px', fontSize: '0.85rem', fontWeight: 700 }}
+                      >
+                        📍 Reached at Location
+                      </button>
+                    )}
+                    {order.status === 'Driver Reached' && (
+                      <button
+                        onClick={() => handleUpdateOrderStatus(order._id, 'Delivered')}
+                        className="btn btn-teal"
+                        style={{ padding: '10px 16px', fontSize: '0.85rem', fontWeight: 700 }}
+                      >
+                        ✅ Mark as Delivered
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -303,13 +303,13 @@ const Footer = () => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Mail size={16} style={{ color: 'var(--primary-blue)', flexShrink: 0 }} />
-                <span>dipendra@steptrendy.com</span>
+                <span>{settings?.contactEmail || "dipendra@steptrendy.com"}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style={{ color: '#25D366', flexShrink: 0 }}>
                   <path d="M12.012 1.985c-5.529 0-10.026 4.497-10.026 10.026 0 1.767.46 3.427 1.264 4.887l-1.343 4.903 5.022-1.317c1.402.763 3.003 1.197 4.71 1.197 5.529 0 10.026-4.497 10.026-10.026 0-5.529-4.497-10.026-10.026-10.026zm5.54 14.288c-.219.614-1.286 1.117-1.778 1.18-.342.044-.789.078-1.286-.08-3.155-1.002-5.187-4.148-5.345-4.36-.157-.212-1.264-1.685-1.264-3.21 0-1.526.789-2.278 1.073-2.583.284-.305.614-.383.82-.383.206 0 .411.001.59.01.183.009.43.006.671.58.252.597.859 2.086.934 2.238.075.152.124.329.025.529-.1.2-.249.329-.395.503-.146.173-.306.386-.131.691.176.305.779 1.28 1.67 2.072 1.15 1.025 2.115 1.343 2.417 1.493.303.15.48.125.66-.082.179-.208.779-.905.986-1.212.207-.306.413-.257.697-.151.284.106 1.798.847 2.109.996.311.149.518.223.593.351.075.128.075.742-.144 1.356z" />
                 </svg>
-                <a href="https://wa.me/918792714127" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.color = '#25D366'} onMouseLeave={(e) => e.target.style.color = 'inherit'}>WhatsApp Chat</a>
+                <a href={`https://wa.me/${(settings?.footerPhone || '918792714127').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} onMouseEnter={(e) => e.target.style.color = '#25D366'} onMouseLeave={(e) => e.target.style.color = 'inherit'}>WhatsApp Chat</a>
               </div>
             </div>
           </div>

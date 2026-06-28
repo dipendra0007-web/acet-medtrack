@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import GlassCard from '../components/GlassCard';
 import { Shield, BookOpen, GraduationCap, Mail, Phone } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSettings } from '../context/SettingsContext';
 
 const About = () => {
+  const { settings } = useSettings();
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,9 +45,9 @@ const About = () => {
             <GraduationCap size={16} />
             Academic Innovation Project
           </span>
-          <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>About ACFET MEDTRACK</h1>
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '20px' }}>{settings?.aboutTitle || 'About ACFET MEDTRACK'}</h1>
           <p style={{ color: 'var(--text-secondary)', maxWidth: '800px', margin: '0 auto', fontSize: '1.1rem', lineHeight: '1.7' }}>
-            ACFET MEDTRACK is a full-stack, production-ready healthcare management web portal engineered by the students of **Aditya College of Engineering & Technology (ACFET)**. Our mission is to bridge technical design and practical utility, offering individuals and medical professionals a secure, automated environment for health tracking.
+            {settings?.aboutSubtitle || 'ACFET MEDTRACK is a full-stack, production-ready healthcare management web portal engineered by the students of Aditya College of Engineering & Technology (ACFET). Our mission is to bridge technical design and practical utility, offering individuals and medical professionals a secure, automated environment for health tracking.'}
           </p>
         </div>
 
@@ -55,9 +57,9 @@ const About = () => {
             <div style={{ padding: '10px', background: 'var(--primary-blue-glow)', color: 'var(--primary-blue)', borderRadius: '8px', alignSelf: 'flex-start' }}>
               <Shield size={20} />
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Data Security First</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{settings?.aboutPillar1Title || 'Data Security First'}</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              All records, reports, and logins are guarded by custom JWT checks and cryptographically hashed credentials.
+              {settings?.aboutPillar1Desc || 'All records, reports, and logins are guarded by custom JWT checks and cryptographically hashed credentials.'}
             </p>
           </GlassCard>
           
@@ -65,9 +67,9 @@ const About = () => {
             <div style={{ padding: '10px', background: 'rgba(20, 184, 166, 0.1)', color: 'var(--accent-teal)', borderRadius: '8px', alignSelf: 'flex-start' }}>
               <BookOpen size={20} />
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Digital Transformation</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{settings?.aboutPillar2Title || 'Digital Transformation'}</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              Replacing ancient paper-based records with structured digital prescriptions, analytics, and automated reminders.
+              {settings?.aboutPillar2Desc || 'Replacing ancient paper-based records with structured digital prescriptions, analytics, and automated reminders.'}
             </p>
           </GlassCard>
 
@@ -75,9 +77,9 @@ const About = () => {
             <div style={{ padding: '10px', background: 'var(--primary-blue-glow)', color: 'var(--primary-blue)', borderRadius: '8px', alignSelf: 'flex-start' }}>
               <GraduationCap size={20} />
             </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Student Innovation</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{settings?.aboutPillar3Title || 'Student Innovation'}</h3>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              Engineered from scratch using modern web practices to represent practical technical problem-solving.
+              {settings?.aboutPillar3Desc || 'Engineered from scratch using modern web practices to represent practical technical problem-solving.'}
             </p>
           </GlassCard>
         </div>

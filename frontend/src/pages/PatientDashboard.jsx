@@ -5,6 +5,7 @@ import GlassCard from '../components/GlassCard';
 import { 
   User, Calendar, Clock, Clipboard, FileText, Plus, Shield, Check, X, Search, Upload, Share2, BellRing, ShoppingBag, Truck, Bell 
 } from 'lucide-react';
+import { playBuzzer } from '../utils/audio';
 
 const PatientDashboard = () => {
   const { user, refreshUser } = useAuth();
@@ -135,6 +136,7 @@ const PatientDashboard = () => {
 
   // Orders state
   const [myOrders, setMyOrders] = useState([]);
+  const prevOrderStatuses = useRef({});
 
   // Notifications state
   const [notifications, setNotifications] = useState([]);
@@ -145,7 +147,11 @@ const PatientDashboard = () => {
   useEffect(() => {
     fetchDashboardData();
     fetchNotifications();
-    const notifInterval = setInterval(fetchNotifications, 20000);
+    // Poll notifications and dashboard data every 800ms (less than a second) for real-time tracking
+    const pollInterval = setInterval(() => {
+      fetchDashboardData();
+      fetchNotifications();
+    }, 800);
 
     const handleMedicationLogged = () => {
       fetchDashboardData();
@@ -153,7 +159,7 @@ const PatientDashboard = () => {
     window.addEventListener('medication-logged', handleMedicationLogged);
 
     return () => {
-      clearInterval(notifInterval);
+      clearInterval(pollInterval);
       window.removeEventListener('medication-logged', handleMedicationLogged);
     };
   }, []);
@@ -221,6 +227,29 @@ const PatientDashboard = () => {
 
     try {
       const ordersData = await api.get('/shop/orders/my');
+      const prev = prevOrderStatuses.current || {};
+      const next = {};
+      
+      (ordersData || []).forEach(order => {
+        const orderId = order._id;
+        const oldStatus = prev[orderId];
+        const newStatus = order.status;
+        next[orderId] = newStatus;
+        
+        if (oldStatus && oldStatus !== newStatus) {
+          if (newStatus === 'Preparing') {
+            playBuzzer('ready');
+          } else if (newStatus === 'Out for Delivery') {
+            playBuzzer('success');
+          } else if (newStatus === 'Driver Reached') {
+            playBuzzer('reached');
+          } else if (newStatus === 'Delivered') {
+            playBuzzer('success');
+          }
+        }
+      });
+      
+      prevOrderStatuses.current = next;
       setMyOrders(ordersData || []);
     } catch (err) {
       console.error('Failed to load orders:', err);
@@ -1735,11 +1764,16 @@ const PatientDashboard = () => {
                     <div key={order._id} style={{
                       border: `2px solid ${
                         order.status === 'Delivered' ? 'rgba(16, 185, 129, 0.3)' :
-                        order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.5)' : 'var(--glass-border)'
+                        order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.5)' :
+                        order.status === 'Driver Reached' ? 'var(--accent-teal)' :
+                        order.status === 'Preparing' ? 'rgba(147, 51, 234, 0.5)' : 'var(--glass-border)'
                       }`,
                       borderRadius: '16px',
                       padding: '20px',
-                      background: order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
+                      background: 
+                        order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.04)' :
+                        order.status === 'Driver Reached' ? 'rgba(20, 184, 166, 0.05)' :
+                        order.status === 'Preparing' ? 'rgba(147, 51, 234, 0.04)' : 'transparent',
                       transition: 'all 0.3s'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
@@ -1754,12 +1788,17 @@ const PatientDashboard = () => {
                           padding: '6px 14px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700,
                           background: 
                             order.status === 'Delivered' ? 'rgba(16, 185, 129, 0.15)' :
-                            order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                            order.status === 'Out for Delivery' ? 'rgba(59, 130, 246, 0.15)' :
+                            order.status === 'Driver Reached' ? 'rgba(20, 184, 166, 0.2)' :
+                            order.status === 'Preparing' ? 'rgba(147, 51, 234, 0.15)' : 'rgba(245, 158, 11, 0.15)',
                           color:
                             order.status === 'Delivered' ? 'var(--success-green)' :
-                            order.status === 'Out for Delivery' ? 'var(--primary-blue)' : 'var(--warning-orange)'
+                            order.status === 'Out for Delivery' ? 'var(--primary-blue)' :
+                            order.status === 'Driver Reached' ? 'var(--accent-teal)' :
+                            order.status === 'Preparing' ? '#9333ea' : 'var(--warning-orange)'
                         }}>
                           {order.status === 'Out for Delivery' && <Truck size={12} />}
+                          {order.status === 'Driver Reached' && <span>📍</span>}
                           {order.status}
                         </span>
                       </div>
@@ -1799,19 +1838,25 @@ const PatientDashboard = () => {
                         <div style={{ fontWeight: 700 }}>₹{order.totalINR}</div>
                       </div>
 
-                      {/* Driver Details - shown when dispatched */}
-                      {order.status === 'Out for Delivery' && order.driverName && (
+                      {/* Driver Details - shown when dispatched or reached */}
+                      {(order.status === 'Out for Delivery' || order.status === 'Driver Reached') && order.driverName && (
                         <div style={{
                           marginTop: '16px',
-                          background: 'rgba(59, 130, 246, 0.08)',
-                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          background: order.status === 'Driver Reached' ? 'rgba(20, 184, 166, 0.1)' : 'rgba(59, 130, 246, 0.08)',
+                          border: order.status === 'Driver Reached' ? '2px solid var(--accent-teal)' : '1px solid rgba(59, 130, 246, 0.3)',
                           borderRadius: '12px',
                           padding: '16px',
-                          animation: 'pulse 3s infinite'
+                          animation: 'pulse 2s infinite'
                         }}>
-                          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary-blue)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Truck size={16} /> 🛵 Delivery Boy Assigned!
-                          </div>
+                          {order.status === 'Driver Reached' ? (
+                            <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--accent-teal)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              📍 🔔 DRIVER REACHED YOUR LOCATION!
+                            </div>
+                          ) : (
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary-blue)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Truck size={16} /> 🛵 Delivery Boy Assigned!
+                            </div>
+                          )}
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem' }}>
                             <div>
                               <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', display: 'block' }}>Driver Name</span>

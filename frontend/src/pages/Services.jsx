@@ -2,46 +2,70 @@ import React from 'react';
 import GlassCard from '../components/GlassCard';
 import { Clock, Shield, Users, Heart, Clipboard, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSettings } from '../context/SettingsContext';
 
 const Services = () => {
-  const serviceList = [
+  const { settings } = useSettings();
+
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'Shield': return <Shield size={28} />;
+      case 'Users': return <Users size={28} />;
+      case 'Heart': return <Heart size={28} />;
+      case 'Clipboard': return <Clipboard size={28} />;
+      case 'Moon': return <Moon size={28} />;
+      case 'Clock':
+      default:
+        return <Clock size={28} />;
+    }
+  };
+
+  const defaultServices = [
     {
-      icon: <Clock size={28} />,
+      iconName: "Clock",
       title: "Audible Medicine Alarms",
       desc: "Set exact schedules, dosage quantities, and directions. The platform plays synthesizer alarm chimes and displays full-screen browser modals to keep you on schedule.",
       color: "var(--primary-blue)"
     },
     {
-      icon: <Shield size={28} />,
+      iconName: "Shield",
       title: "Digital Health Records",
       desc: "Securely upload and categorize laboratory results, clinic summaries, and medical reports. Patients control sharing permissions with doctors.",
       color: "var(--accent-teal)"
     },
     {
-      icon: <Users size={28} />,
+      iconName: "Users",
       title: "Parent/Guardian Access",
       desc: "Authorize parents using custom usernames/passwords. Parents get a tailored viewing dashboard with real-time sync of active medication compliance.",
       color: "var(--primary-blue)"
     },
     {
-      icon: <Heart size={28} />,
+      iconName: "Heart",
       title: "Doctor Booking Channel",
       desc: "Browse approved specialists, check consultation times, and submit appointments. Doctors accept, reject, or suggest timeslots.",
       color: "var(--danger-red)"
     },
     {
-      icon: <Clipboard size={28} />,
+      iconName: "Clipboard",
       title: "Digital Prescriptions",
       desc: "Doctor-written prescriptions synchronize automatically with patient medication reminders, ensuring zero manual scheduling errors.",
       color: "var(--accent-teal)"
     },
     {
-      icon: <Moon size={28} />,
+      iconName: "Moon",
       title: "Dark & Light Mode Integration",
       desc: "Toggle interface themes seamlessly to match environmental lighting. Designed with accessible contrast ratios for elderly patients.",
       color: "var(--warning-orange)"
     }
   ];
+
+  const rawList = (settings?.services && settings.services.length > 0) ? settings.services : defaultServices;
+  const serviceList = rawList.map(s => ({
+    icon: getIcon(s.iconName),
+    title: s.title,
+    desc: s.desc,
+    color: s.color || 'var(--primary-blue)'
+  }));
 
   return (
     <div style={{ padding: '60px 0 80px 0' }} className="animate-fade-in-up">

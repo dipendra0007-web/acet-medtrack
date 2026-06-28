@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import GlassCard from '../components/GlassCard';
 import { Mail, Phone, MapPin, Send, HelpCircle, ArrowLeft, Clock, MessageSquare, User, Shield } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSettings } from '../context/SettingsContext';
 
 const Contact = () => {
+  const { settings } = useSettings();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
   const [activeTab, setActiveTab] = useState('new'); // 'new' | 'chats'
@@ -103,17 +105,17 @@ const Contact = () => {
     {
       icon: <MapPin size={22} />,
       title: "Our Campus Location",
-      details: "Aditya College of Engineering & Technology, Surampalem, ADB Road, East Godavari District, Andhra Pradesh, India - 533437."
+      details: settings?.footerLocation || "Aditya College of Engineering & Technology, Surampalem, ADB Road, East Godavari District, Andhra Pradesh, India - 533437."
     },
     {
       icon: <Phone size={22} />,
       title: "Telephone Support",
-      details: "+91 8792714127 (Mon-Sat, 9AM-5PM IST)"
+      details: `${settings?.footerPhone || '+91 8792714127'} (Mon-Sat, 9AM-5PM IST)`
     },
     {
       icon: <Mail size={22} />,
       title: "Official Email Enquiries",
-      details: "dipendra@steptrendy.com"
+      details: settings?.contactEmail || "dipendra@steptrendy.com"
     },
     {
       icon: (
@@ -123,8 +125,8 @@ const Contact = () => {
       ),
       title: "WhatsApp Chat Support",
       details: (
-        <a href="https://wa.me/918792714127" target="_blank" rel="noreferrer" style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>
-          Launch WhatsApp Chat (+91 8792714127)
+        <a href={`https://wa.me/${(settings?.footerPhone || '918792714127').replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>
+          Launch WhatsApp Chat ({settings?.footerPhone || '+91 8792714127'})
         </a>
       )
     }
