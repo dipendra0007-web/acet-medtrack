@@ -31,6 +31,38 @@ const DoctorDashboard = () => {
   const [clinicInfo, setClinicInfo] = useState(user.doctorDetails?.clinicInfo || '');
   const [availability, setAvailability] = useState(user.doctorDetails?.availability || []);
   const [photo, setPhoto] = useState(user.photo || '');
+  const [gpsLoading, setGpsLoading] = useState(false);
+
+  const handleFetchGPS = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          if (data && data.display_name) {
+            setClinicInfo(data.display_name);
+          } else {
+            setClinicInfo(`Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)}`);
+          }
+        } catch (err) {
+          console.error("Geocoding failed:", err);
+          setClinicInfo(`Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)}`);
+        } finally {
+          setGpsLoading(false);
+        }
+      },
+      (err) => {
+        setGpsLoading(false);
+        alert("Failed to access your location. Please check browser permissions.");
+      }
+    );
+  };
 
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -756,7 +788,18 @@ const DoctorDashboard = () => {
                 </div>
 
                 <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label className="form-label">Clinic Location / Information</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>Clinic Location / Information</label>
+                    <button
+                      type="button"
+                      onClick={handleFetchGPS}
+                      disabled={gpsLoading}
+                      className="btn btn-teal"
+                      style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                    >
+                      {gpsLoading ? 'Fetching GPS...' : '📍 Fetch GPS Location'}
+                    </button>
+                  </div>
                   <textarea 
                     className="form-control" 
                     rows="3"

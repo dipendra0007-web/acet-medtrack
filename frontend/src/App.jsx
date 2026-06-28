@@ -2,10 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SettingsProvider } from './context/SettingsContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import MobileNav from './components/MobileNav';
 import AlarmNotification from './components/AlarmNotification';
+import OpeningAnimation from './components/OpeningAnimation';
 
 // Import Pages
 import Home from './pages/Home';
@@ -24,43 +26,48 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Navbar />
-            
-            <main style={{ flexGrow: 1 }}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/team" element={<OurTeam />} />
-                <Route path="/gallery" element={<Gallery />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/download" element={<AppDownload />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/patient" element={<Dashboard />} />
-                <Route path="/doctor" element={<Dashboard />} />
-                <Route path="/admin" element={<Dashboard />} />
-                <Route path="/parent" element={<Dashboard />} />
-                <Route path="/PATIENT" element={<Dashboard />} />
-                <Route path="/DOCTOR" element={<Dashboard />} />
-                <Route path="/ADMIN" element={<Dashboard />} />
-                <Route path="/PARENT" element={<Dashboard />} />
-              </Routes>
-            </main>
+        <SettingsProvider>
+          <Router>
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+              <Navbar />
+              
+              <main style={{ flexGrow: 1 }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/team" element={<OurTeam />} />
+                  <Route path="/gallery" element={<Gallery />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/shop" element={<Shop />} />
+                  <Route path="/download" element={<AppDownload />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/patient" element={<Dashboard />} />
+                  <Route path="/doctor" element={<Dashboard />} />
+                  <Route path="/admin" element={<Dashboard />} />
+                  <Route path="/parent" element={<Dashboard />} />
+                  <Route path="/PATIENT" element={<Dashboard />} />
+                  <Route path="/DOCTOR" element={<Dashboard />} />
+                  <Route path="/ADMIN" element={<Dashboard />} />
+                  <Route path="/PARENT" element={<Dashboard />} />
+                </Routes>
+              </main>
 
-            <Footer />
-            
-            {/* Global Medicine Alarms Engine */}
-            <AlarmNotification />
-            
-            {/* Mobile Bottom Tab Navigation */}
-            <MobileNav />
-          </div>
-        </Router>
+              <Footer />
+              
+              {/* Global Medicine Alarms Engine */}
+              <AlarmNotification />
+              
+              {/* Mobile Bottom Tab Navigation */}
+              <MobileNav />
+
+              {/* Splash Opening Animation */}
+              <OpeningAnimation />
+            </div>
+          </Router>
+        </SettingsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

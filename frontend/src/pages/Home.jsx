@@ -26,11 +26,60 @@ const Home = () => {
     accuracy: '98.7%'
   });
 
+  // Homepage Ad Overlay & Collaborators states
+  const [activeAd, setActiveAd] = useState(null);
+  const [adTime, setAdTime] = useState(0);
+  const [canSkipAd, setCanSkipAd] = useState(false);
+  const [collabs, setCollabs] = useState([]);
+
   useEffect(() => {
     fetchApprovedReviews();
     fetchPublicStats();
     fetchReleases();
+    fetchActiveAd();
+    fetchCollaborators();
   }, []);
+
+  useEffect(() => {
+    if (!activeAd) return;
+    if (adTime <= 0) {
+      setCanSkipAd(true);
+      return;
+    }
+    const timer = setInterval(() => {
+      setAdTime(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanSkipAd(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [activeAd, adTime]);
+
+  const fetchActiveAd = async () => {
+    try {
+      const data = await api.get('/public/ad-popup/active');
+      if (data) {
+        setActiveAd(data);
+        setAdTime(data.duration || 5);
+        setCanSkipAd(false);
+      }
+    } catch (err) {
+      console.error('Failed to load active ad popup:', err);
+    }
+  };
+
+  const fetchCollaborators = async () => {
+    try {
+      const data = await api.get('/public/collaborators');
+      setCollabs(data || []);
+    } catch (err) {
+      console.error('Failed to load collaborators:', err);
+    }
+  };
 
   const fetchReleases = async () => {
     try {
@@ -534,6 +583,145 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Collaborators & Partners Section */}
+      {collabs.length > 0 && (
+        <section style={{ padding: '60px 0', borderTop: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.01)' }}>
+          <div className="container">
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '8px' }}>Our Trusted Collaborators & Partners</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>Working together to build a healthier campus community</p>
+            </div>
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '30px',
+              padding: '20px'
+            }}>
+              {collabs.map(collab => (
+                <a
+                  key={collab._id}
+                  href={collab.websiteLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'var(--glass-bg)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    width: '180px',
+                    transition: 'all 0.3s ease',
+                    textDecoration: 'none',
+                    textAlign: 'center'
+                  }}
+                  className="collab-card"
+                >
+                  <div style={{ width: '80px', height: '80px', background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px', padding: '6px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+                    {collab.photo ? (
+                      <img src={collab.photo} alt={collab.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary-blue)' }}>{collab.name?.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>{collab.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Homepage Announcement Ad Popup Overlay */}
+      {activeAd && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(11, 19, 41, 0.85)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <GlassCard style={{
+            width: '460px',
+            padding: '28px',
+            position: 'relative',
+            textAlign: 'center',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            border: '2px solid var(--primary-blue)',
+            overflow: 'hidden'
+          }}>
+            {/* Ad Image */}
+            {activeAd.imageUrl && (
+              <img
+                src={activeAd.imageUrl}
+                alt={activeAd.title}
+                style={{
+                  width: '100%',
+                  maxHeight: '220px',
+                  objectFit: 'cover',
+                  borderRadius: '12px',
+                  marginBottom: '20px',
+                  border: '1px solid var(--glass-border)'
+                }}
+              />
+            )}
+            
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '10px' }}>{activeAd.title}</h3>
+            {activeAd.description && (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', lineHeight: '1.5' }}>
+                {activeAd.description}
+              </p>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {activeAd.linkUrl && (
+                <a
+                  href={activeAd.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-teal"
+                  style={{ width: '100%', padding: '12px', textDecoration: 'none', display: 'block', fontWeight: 700 }}
+                  onClick={() => setActiveAd(null)}
+                >
+                  Learn More / Grab Offer 🚀
+                </a>
+              )}
+              
+              {canSkipAd ? (
+                <button
+                  onClick={() => setActiveAd(null)}
+                  className="btn btn-secondary"
+                  style={{ width: '100%', padding: '12px', fontWeight: 600 }}
+                >
+                  Skip Ad
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="btn btn-secondary"
+                  style={{ width: '100%', padding: '12px', cursor: 'not-allowed', opacity: 0.6, color: 'var(--text-secondary)' }}
+                >
+                  Skip in {adTime}s...
+                </button>
+              )}
+            </div>
+          </GlassCard>
+        </div>
+      )}
 
       {styleInjection}
     </div>

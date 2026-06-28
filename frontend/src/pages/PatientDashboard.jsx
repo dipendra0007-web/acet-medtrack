@@ -53,6 +53,43 @@ const PatientDashboard = () => {
   const [patientCity, setPatientCity] = useState(user.patientDetails?.city || '');
   const [patientPincode, setPatientPincode] = useState(user.patientDetails?.pincode || '');
   const [patientLandmark, setPatientLandmark] = useState(user.patientDetails?.landmark || '');
+  const [gpsLoading, setGpsLoading] = useState(false);
+
+  const handleFetchGPS = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          if (data && data.address) {
+            const address = data.address;
+            setPatientCountry(address.country || 'India');
+            setPatientState(address.state || '');
+            setPatientCity(address.city || address.town || address.village || address.suburb || '');
+            setPatientPincode(address.postcode || '');
+            setPatientLandmark(data.display_name?.split(',').slice(0, 2).join(',') || '');
+          } else {
+            alert(`Location fetched, but geocode details unavailable: ${latitude}, ${longitude}`);
+          }
+        } catch (err) {
+          console.error("Reverse geocoding error:", err);
+          alert(`Location coordinates obtained: ${latitude}, ${longitude}`);
+        } finally {
+          setGpsLoading(false);
+        }
+      },
+      (err) => {
+        setGpsLoading(false);
+        alert("Failed to access your location. Please check browser permissions.");
+      }
+    );
+  };
 
   // Doctor area filter state
   const [showLocalOnly, setShowLocalOnly] = useState(false);
@@ -1505,7 +1542,18 @@ const PatientDashboard = () => {
                   border: '1px solid var(--glass-border)',
                   marginBottom: '24px'
                 }}>
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>📍 Location / Address Details</h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                    <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>📍 Location / Address Details</h4>
+                    <button
+                      type="button"
+                      onClick={handleFetchGPS}
+                      disabled={gpsLoading}
+                      className="btn btn-teal"
+                      style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                    >
+                      {gpsLoading ? 'Fetching GPS...' : '📍 Fetch My Location'}
+                    </button>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div className="form-group">
                       <label className="form-label">Country</label>

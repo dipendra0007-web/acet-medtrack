@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api, API_BASE_URL } from '../utils/api';
 import GlassCard from '../components/GlassCard';
 import { 
-  Shield, Users, UserCheck, Calendar, Bell, FileText, Download, Trash2, Search, Check, X, AlertTriangle, Plus, Edit, Phone, Mail, MessageSquare, Image, Video, ShoppingBag, ShoppingCart, MapPin, Monitor, Truck, Navigation, Clock, Send, User, ArrowLeft
+  Shield, Users, UserCheck, Calendar, Bell, FileText, Download, Trash2, Search, Check, X, AlertTriangle, Plus, Edit, Phone, Mail, MessageSquare, Image, Video, ShoppingBag, ShoppingCart, MapPin, Monitor, Truck, Navigation, Clock, Send, User, ArrowLeft, Settings
 } from 'lucide-react';
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -123,6 +123,162 @@ const AdminDashboard = () => {
   const [availableDrivers, setAvailableDrivers] = useState([]);
   const [driversLoading, setDriversLoading] = useState(false);
 
+  // ─── Delivery Locations Config States ───
+  const [deliveryLocations, setDeliveryLocations] = useState([]);
+  const [showLocationForm, setShowLocationForm] = useState(false);
+  const [locState, setLocState] = useState('');
+  const [locArea, setLocArea] = useState('');
+  const [locLat, setLocLat] = useState('');
+  const [locLng, setLocLng] = useState('');
+  const [locSearchQuery, setLocSearchQuery] = useState('');
+
+  // ─── Homepage Ads States ───
+  const [adPopups, setAdPopups] = useState([]);
+  const [showAdForm, setShowAdForm] = useState(false);
+  const [isEditingAd, setIsEditingAd] = useState(false);
+  const [editingAdId, setEditingAdId] = useState(null);
+  const [adTitle, setAdTitle] = useState('');
+  const [adDesc, setAdDesc] = useState('');
+  const [adImageUrl, setAdImageUrl] = useState('');
+  const [adLinkUrl, setAdLinkUrl] = useState('');
+  const [adDuration, setAdDuration] = useState(5);
+  const [adActive, setAdActive] = useState(true);
+
+  // ─── Collaborators States ───
+  const [collaborators, setCollaborators] = useState([]);
+  const [showCollabForm, setShowCollabForm] = useState(false);
+  const [isEditingCollab, setIsEditingCollab] = useState(false);
+  const [editingCollabId, setEditingCollabId] = useState(null);
+  const [collabName, setCollabName] = useState('');
+  const [collabPhoto, setCollabPhoto] = useState('');
+  const [collabLink, setCollabLink] = useState('');
+
+  // ─── Detailed Verification Popups ───
+  const [detailDoctor, setDetailDoctor] = useState(null);
+  const [detailDriver, setDetailDriver] = useState(null);
+
+  // ─── Site Customization States ───
+  const [webSettings, setWebSettings] = useState(null);
+  const [siteName, setSiteName] = useState('');
+  const [siteLogo, setSiteLogo] = useState('');
+  const [footLoc, setFootLoc] = useState('');
+  const [footPhone, setFootPhone] = useState('');
+  const [footCopyright, setFootCopyright] = useState('');
+  const [splashActive, setSplashActive] = useState(true);
+  const [splashText, setSplashText] = useState('');
+  const [splashLogo, setSplashLogo] = useState('');
+  const [navItemsList, setNavItemsList] = useState([]);
+  
+  // Link editor state
+  const [linkEditorOpen, setLinkEditorOpen] = useState(false);
+  const [isEditingLink, setIsEditingLink] = useState(false);
+  const [editingLinkIdx, setEditingLinkIdx] = useState(null);
+  const [linkLabel, setLinkLabel] = useState('');
+  const [linkPath, setLinkPath] = useState('');
+
+  const fetchAdminWebSettings = async () => {
+    try {
+      const data = await api.get('/admin/settings');
+      if (data) {
+        setWebSettings(data);
+        setSiteName(data.websiteName || '');
+        setSiteLogo(data.logo || '');
+        setFootLoc(data.footerLocation || '');
+        setFootPhone(data.footerPhone || '');
+        setFootCopyright(data.footerCopyright || '');
+        setSplashActive(data.openingAnimationActive ?? true);
+        setSplashText(data.openingAnimationText || '');
+        setSplashLogo(data.openingAnimationLogo || '');
+        setNavItemsList(data.customNavLinks || []);
+      }
+    } catch (err) {
+      console.error('Failed to load admin settings:', err);
+    }
+  };
+
+  const handleSaveWebSettings = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        websiteName: siteName,
+        logo: siteLogo,
+        footerLocation: footLoc,
+        footerPhone: footPhone,
+        footerCopyright: footCopyright,
+        openingAnimationActive: splashActive,
+        openingAnimationText: splashText,
+        openingAnimationLogo: splashLogo,
+        customNavLinks: navItemsList
+      };
+      const updated = await api.post('/admin/settings', payload);
+      alert('Website customization saved successfully! Refresh page to see changes.');
+      setWebSettings(updated);
+    } catch (err) {
+      console.error('Failed to update web settings:', err);
+      alert('Failed to save settings: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleSiteLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSiteLogo(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSplashLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSplashLogo(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddNavLink = () => {
+    if (!linkLabel || !linkPath) {
+      alert('Please fill both label and target path!');
+      return;
+    }
+    const newLink = { label: linkLabel, path: linkPath };
+    if (isEditingLink) {
+      const copy = [...navItemsList];
+      copy[editingLinkIdx] = newLink;
+      setNavItemsList(copy);
+      setIsEditingLink(false);
+      setEditingLinkIdx(null);
+    } else {
+      setNavItemsList([...navItemsList, newLink]);
+    }
+    setLinkLabel('');
+    setLinkPath('');
+    setLinkEditorOpen(false);
+  };
+
+  const handleEditNavLink = (idx) => {
+    const target = navItemsList[idx];
+    setLinkLabel(target.label || target.name || '');
+    setLinkPath(target.path || '');
+    setIsEditingLink(true);
+    setEditingLinkIdx(idx);
+    setLinkEditorOpen(true);
+  };
+
+  const handleDeleteNavLink = (idx) => {
+    if (window.confirm('Are you sure you want to remove this navigation item?')) {
+      setNavItemsList(navItemsList.filter((_, i) => i !== idx));
+    }
+  };
+
+  // Leaflet CDN injection state for Delivery Locations
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+
   // Notifications State
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
@@ -144,6 +300,12 @@ const AdminDashboard = () => {
     return () => clearInterval(notifInterval);
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'customization') {
+      fetchAdminWebSettings();
+    }
+  }, [activeTab]);
+
   // Close notification panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -154,6 +316,77 @@ const AdminDashboard = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Inject Leaflet resources when activeTab is locations
+  useEffect(() => {
+    if (activeTab === 'locations' && !leafletLoaded) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.async = true;
+      script.onload = () => {
+        setLeafletLoaded(true);
+      };
+      document.body.appendChild(script);
+
+      return () => {
+        if (document.head.contains(link)) document.head.removeChild(link);
+        if (document.body.contains(script)) document.body.removeChild(script);
+      };
+    }
+  }, [activeTab, leafletLoaded]);
+
+  // Initialize Leaflet map for Admin Delivery Locations
+  useEffect(() => {
+    if (activeTab !== 'locations' || !leafletLoaded || !document.getElementById('admin-location-map')) return;
+
+    const defaultLat = 13.1165;
+    const defaultLng = 77.5755;
+
+    let map;
+    let marker;
+    try {
+      map = window.L.map('admin-location-map').setView([defaultLat, defaultLng], 14);
+
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      marker = window.L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+      
+      mapRef.current = map;
+      markerRef.current = marker;
+
+      setLocLat(defaultLat.toFixed(5));
+      setLocLng(defaultLng.toFixed(5));
+
+      marker.on('dragend', function (event) {
+        const position = marker.getLatLng();
+        setLocLat(position.lat.toFixed(5));
+        setLocLng(position.lng.toFixed(5));
+      });
+
+      map.on('click', function (event) {
+        marker.setLatLng(event.latlng);
+        setLocLat(event.latlng.lat.toFixed(5));
+        setLocLng(event.latlng.lng.toFixed(5));
+      });
+    } catch (e) {
+      console.error('Error initializing admin leaflet map:', e);
+    }
+
+    return () => {
+      if (map) {
+        map.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+    };
+  }, [leafletLoaded, activeTab]);
 
   const fetchNotifications = async () => {
     try {
@@ -250,6 +483,30 @@ const AdminDashboard = () => {
       console.error('Failed to load support tickets:', err);
     }
 
+    // Fetch delivery locations config
+    try {
+      const locData = await api.get('/admin/delivery-locations');
+      setDeliveryLocations(locData || []);
+    } catch (err) {
+      console.error('Failed to load delivery locations:', err);
+    }
+
+    // Fetch homepage ad popups
+    try {
+      const adData = await api.get('/admin/ad-popup');
+      setAdPopups(adData || []);
+    } catch (err) {
+      console.error('Failed to load ad popups:', err);
+    }
+
+    // Fetch collaborators
+    try {
+      const collabData = await api.get('/admin/collaborators');
+      setCollaborators(collabData || []);
+    } catch (err) {
+      console.error('Failed to load collaborators:', err);
+    }
+
     // Fetch available drivers
     try {
       setDriversLoading(true);
@@ -299,6 +556,203 @@ const AdminDashboard = () => {
     try {
       await api.put(`/admin/drivers/${id}/approve`, { approved });
       triggerSuccess(approved ? `Driver ${name} approved & can now log in.` : `Driver registration for ${name} rejected.`);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleUpdateUserRole = async (userId, newRole) => {
+    try {
+      await api.put(`/admin/users/${userId}/role`, { role: newRole });
+      triggerSuccess(`User role updated to "${newRole}" successfully.`);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleLocationSearch = async () => {
+    if (!locSearchQuery) return;
+    const parsedCoords = parseGoogleMapsUrl(locSearchQuery);
+    if (parsedCoords) {
+      const { lat, lng } = parsedCoords;
+      setLocLat(lat.toFixed(5));
+      setLocLng(lng.toFixed(5));
+      if (mapRef.current && markerRef.current) {
+        mapRef.current.setView([lat, lng], 16);
+        markerRef.current.setLatLng([lat, lng]);
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locSearchQuery)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setLocLat(lat.toFixed(5));
+        setLocLng(lon.toFixed(5));
+        if (mapRef.current && markerRef.current) {
+          mapRef.current.setView([lat, lon], 16);
+          markerRef.current.setLatLng([lat, lon]);
+        }
+      } else {
+        alert("Location not found. Try searching a specific address.");
+      }
+    } catch (err) {
+      console.error("Geocoding failed:", err);
+      alert("Search failed.");
+    }
+  };
+
+  const parseGoogleMapsUrl = (url) => {
+    const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (atMatch) {
+      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+    }
+    const qMatch = url.match(/[?&]q(?:uery)?=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (qMatch) {
+      return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+    }
+    return null;
+  };
+
+  const handleAddDeliveryLocation = async (e) => {
+    e.preventDefault();
+    if (!locState || !locArea || !locLat || !locLng) {
+      return triggerError('State, Area, Latitude, and Longitude are required.');
+    }
+    try {
+      await api.post('/admin/delivery-locations', {
+        state: locState,
+        area: locArea,
+        latitude: Number(locLat),
+        longitude: Number(locLng)
+      });
+      triggerSuccess(`Delivery location "${locArea}" configured successfully.`);
+      setLocState('');
+      setLocArea('');
+      setLocSearchQuery('');
+      setShowLocationForm(false);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleDeleteDeliveryLocation = async (id, areaName) => {
+    if (!window.confirm(`Are you sure you want to delete delivery location "${areaName}"?`)) return;
+    try {
+      await api.delete(`/admin/delivery-locations/${id}`);
+      triggerSuccess(`Delivery location removed.`);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleAdPhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAdImageUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveAdPopup = async (e) => {
+    e.preventDefault();
+    if (!adTitle) return triggerError('Ad Title is required.');
+    try {
+      const payload = {
+        title: adTitle,
+        description: adDesc,
+        imageUrl: adImageUrl,
+        linkUrl: adLinkUrl,
+        duration: Number(adDuration || 5),
+        active: adActive
+      };
+
+      if (isEditingAd) {
+        await api.put(`/admin/ad-popup/${editingAdId}`, payload);
+        triggerSuccess(`Homepage ad popup updated successfully.`);
+      } else {
+        await api.post('/admin/ad-popup', payload);
+        triggerSuccess(`Homepage ad popup created successfully.`);
+      }
+      setAdTitle('');
+      setAdDesc('');
+      setAdImageUrl('');
+      setAdLinkUrl('');
+      setAdDuration(5);
+      setAdActive(true);
+      setShowAdForm(false);
+      setIsEditingAd(false);
+      setEditingAdId(null);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleDeleteAdPopup = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete Ad Popup "${title}"?`)) return;
+    try {
+      await api.delete(`/admin/ad-popup/${id}`);
+      triggerSuccess(`Ad Popup deleted successfully.`);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleCollabPhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCollabPhoto(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveCollaborator = async (e) => {
+    e.preventDefault();
+    if (!collabName || !collabLink) return triggerError('Name and website link are required.');
+    try {
+      const payload = {
+        name: collabName,
+        photo: collabPhoto,
+        websiteLink: collabLink
+      };
+
+      if (isEditingCollab) {
+        await api.put(`/admin/collaborators/${editingCollabId}`, payload);
+        triggerSuccess(`Collaborator updated successfully.`);
+      } else {
+        await api.post('/admin/collaborators', payload);
+        triggerSuccess(`Collaborator added successfully.`);
+      }
+      setCollabName('');
+      setCollabPhoto('');
+      setCollabLink('');
+      setShowCollabForm(false);
+      setIsEditingCollab(false);
+      setEditingCollabId(null);
+      fetchAdminData();
+    } catch (err) {
+      triggerError(err.message);
+    }
+  };
+
+  const handleDeleteCollaborator = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete collaborator "${name}"?`)) return;
+    try {
+      await api.delete(`/admin/collaborators/${id}`);
+      triggerSuccess(`Collaborator removed.`);
       fetchAdminData();
     } catch (err) {
       triggerError(err.message);
@@ -947,9 +1401,12 @@ const AdminDashboard = () => {
             { id: 'orders', name: 'Order Dispatcher', icon: <ShoppingCart size={16} /> },
             { id: 'revenue', name: 'Revenue & Earnings', icon: <span style={{fontSize:'14px'}}>💰</span> },
             { id: 'logs', name: 'System Audit Logs', icon: <FileText size={16} /> },
-            { id: 'export', name: 'CSV Exporter', icon: <Download size={16} /> },
             { id: 'releases', name: 'App Releases', icon: <Download size={16} /> },
             { id: 'messages', name: 'Get in Touch', icon: <MessageSquare size={16} /> },
+            { id: 'locations', name: 'Delivery Locations', icon: <MapPin size={16} /> },
+            { id: 'homepage-ads', name: 'Homepage Ad Manager', icon: <Monitor size={16} /> },
+            { id: 'collaborators', name: 'Collaborators Panel', icon: <Users size={16} /> },
+            { id: 'customization', name: 'Site Customization', icon: <Settings size={16} /> },
             { id: 'reset', name: 'Factory Reset', icon: <span style={{fontSize:'14px'}}>🔄</span> }
           ].map(tab => (
             <button
@@ -1095,18 +1552,43 @@ const AdminDashboard = () => {
                           </span>
                         </td>
                         <td style={{ padding: '14px 8px', textAlign: 'right' }}>
-                          <button
-                            onClick={() => handleDeleteUser(u._id || u.id, u.name)}
-                            className="btn btn-secondary"
-                            style={{
-                              padding: '6px 10px',
-                              fontSize: '0.75rem',
-                              color: 'var(--danger-red)',
-                              borderColor: 'rgba(239, 68, 68, 0.15)'
-                            }}
-                          >
-                            <Trash2 size={12} /> Delete
-                          </button>
+                          <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <select
+                              value={u.role}
+                              onChange={(e) => {
+                                if (window.confirm(`Change ${u.name}'s role to ${e.target.value}?`)) {
+                                  handleUpdateUserRole(u._id || u.id, e.target.value);
+                                }
+                              }}
+                              style={{
+                                padding: '6px 8px',
+                                borderRadius: '6px',
+                                background: 'var(--bg-primary)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--glass-border)',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="patient">Patient</option>
+                              <option value="doctor">Doctor</option>
+                              <option value="driver">Driver</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                            <button
+                              onClick={() => handleDeleteUser(u._id || u.id, u.name)}
+                              className="btn btn-secondary"
+                              style={{
+                                padding: '6px 10px',
+                                fontSize: '0.75rem',
+                                color: 'var(--danger-red)',
+                                borderColor: 'rgba(239, 68, 68, 0.15)'
+                              }}
+                            >
+                              <Trash2 size={12} /> Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1148,7 +1630,14 @@ const AdminDashboard = () => {
                       </p>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={() => setDetailDoctor(doc)}
+                        className="btn btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                      >
+                        🔍 View Credentials
+                      </button>
                       <button
                         onClick={() => handleApproveDoctor(doc._id, doc.name, true)}
                         className="btn btn-teal"
@@ -1157,7 +1646,7 @@ const AdminDashboard = () => {
                         <Check size={14} /> Approve License
                       </button>
                       <button
-                        onClick={() => handleApproveDoctor(doc._id, doc.name, false)}
+                        onClick={() => { if (window.confirm(`Reject Dr. ${doc.name}?`)) handleApproveDoctor(doc._id, doc.name, false); }}
                         className="btn btn-secondary"
                         style={{ padding: '8px 16px', fontSize: '0.85rem', color: 'var(--danger-red)' }}
                       >
@@ -1271,7 +1760,11 @@ const AdminDashboard = () => {
                               </div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
+                          <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'wrap' }}>
+                            <button
+                              onClick={() => setDetailDriver(driver)}
+                              style={{ padding: '10px 20px', background: 'var(--primary-blue)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
+                            >🔍 View Details</button>
                             <button
                               onClick={() => handleApproveDriver(driver._id, driver.name, true)}
                               style={{ padding: '10px 20px', background: 'var(--success-green)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -3313,6 +3806,632 @@ const AdminDashboard = () => {
               </button>
             </div>
           </GlassCard>
+        )}
+
+        {/* Site Customization Panel */}
+        {activeTab === 'customization' && (
+          <GlassCard>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Settings size={24} style={{ color: 'var(--primary-blue)' }} /> Site Identity & Appearance Customization
+            </h3>
+
+            <form onSubmit={handleSaveWebSettings} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              {/* Section 1: Brand details */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '24px' }}>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', color: 'var(--primary-blue)' }}>
+                  🌐 Main Website Identity
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', flexWrap: 'wrap' }} className="grid-2">
+                  <div className="form-group">
+                    <label className="form-label">Website Name / Brand Title *</label>
+                    <input type="text" className="form-control" value={siteName} onChange={e => setSiteName(e.target.value)} required placeholder="E.g. ACET MEDTRACK" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Website Header Logo</label>
+                    <input type="file" className="form-control" accept="image/*" onChange={handleSiteLogoUpload} />
+                    {siteLogo && (
+                      <div style={{ marginTop: '10px' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Logo Preview:</span>
+                        <img src={siteLogo} alt="Logo" style={{ display: 'block', height: '50px', width: '50px', borderRadius: '50%', border: '1px solid var(--glass-border)', marginTop: '6px', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Opening splash animation */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '24px' }}>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', color: 'var(--primary-blue)' }}>
+                  🎬 Website Opening Splash Animation
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <input type="checkbox" id="splashActive" checked={splashActive} onChange={e => setSplashActive(e.target.checked)} />
+                  <label htmlFor="splashActive" style={{ fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer' }}>Enable Opening Load Splash Animation on public website</label>
+                </div>
+                {splashActive && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="grid-2">
+                    <div className="form-group">
+                      <label className="form-label">Splash Welcome Text</label>
+                      <input type="text" className="form-control" value={splashText} onChange={e => setSplashText(e.target.value)} placeholder="E.g. ACET MEDTRACK" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Splash Graphic / Custom Logo</label>
+                      <input type="file" className="form-control" accept="image/*" onChange={handleSplashLogoUpload} />
+                      {splashLogo && (
+                        <div style={{ marginTop: '10px' }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Splash Logo Preview:</span>
+                          <img src={splashLogo} alt="Splash Logo" style={{ display: 'block', height: '60px', width: '60px', borderRadius: '50%', border: '1px solid var(--glass-border)', marginTop: '6px', objectFit: 'cover' }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 3: Footer Configurations */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '24px' }}>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', color: 'var(--primary-blue)' }}>
+                  📞 Footer Contact & Copyright Configurations
+                </h4>
+                <div className="form-group">
+                  <label className="form-label">Footer Location Address *</label>
+                  <textarea className="form-control" rows="2" value={footLoc} onChange={e => setFootLoc(e.target.value)} required placeholder="ADITYA COLLEGE OF ENGINEERING, YEHLENKA KAMKSHIPURA-560089" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="grid-2">
+                  <div className="form-group">
+                    <label className="form-label">Footer Contact Phone Number *</label>
+                    <input type="text" className="form-control" value={footPhone} onChange={e => setFootPhone(e.target.value)} required placeholder="+91 8792714127" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Footer Copyright Disclaimer *</label>
+                    <input type="text" className="form-control" value={footCopyright} onChange={e => setFootCopyright(e.target.value)} required placeholder="© 2026 ACET MEDTRACK – Crafted by Dipendra Upadhayay and TEAM" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Header Navigation links */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--primary-blue)' }}>
+                    🔗 Header Navigation Links Customization
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingLink(false);
+                      setEditingLinkIdx(null);
+                      setLinkLabel('');
+                      setLinkPath('');
+                      setLinkEditorOpen(true);
+                    }}
+                    className="btn btn-primary"
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Plus size={14} /> Add Nav Link
+                  </button>
+                </div>
+
+                {linkEditorOpen && (
+                  <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', fontWeight: 700 }}>
+                      {isEditingLink ? '✏️ Edit Navigation Link' : '➕ Add Navigation Link'}
+                    </h5>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }} className="grid-2">
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Link Label *</label>
+                        <input type="text" className="form-control" value={linkLabel} onChange={e => setLinkLabel(e.target.value)} placeholder="E.g. Services" />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.75rem' }}>Target Route / URL Path *</label>
+                        <input type="text" className="form-control" value={linkPath} onChange={e => setLinkPath(e.target.value)} placeholder="E.g. /services" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button type="button" onClick={handleAddNavLink} className="btn btn-teal" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+                        {isEditingLink ? 'Save Link' : 'Add Link'}
+                      </button>
+                      <button type="button" onClick={() => setLinkEditorOpen(false)} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '0.75rem' }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                        <th style={{ padding: '8px' }}>Label</th>
+                        <th style={{ padding: '8px' }}>Target Path</th>
+                        <th style={{ padding: '8px', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {navItemsList.length === 0 ? (
+                        <tr>
+                          <td colSpan="3" style={{ padding: '16px 8px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                            No navigation items configured. Add links to populate your header navbar.
+                          </td>
+                        </tr>
+                      ) : (
+                        navItemsList.map((item, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                            <td style={{ padding: '10px 8px', fontWeight: 600 }}>{item.label || item.name}</td>
+                            <td style={{ padding: '10px 8px', fontFamily: 'monospace' }}>{item.path}</td>
+                            <td style={{ padding: '10px 8px', textAlign: 'right' }}>
+                              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                <button type="button" onClick={() => handleEditNavLink(idx)} className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '0.72rem' }}>
+                                  Edit
+                                </button>
+                                <button type="button" onClick={() => handleDeleteNavLink(idx)} className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '0.72rem', color: 'var(--danger-red)', borderColor: 'rgba(239,68,68,0.15)' }}>
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Submit panel */}
+              <button
+                type="submit"
+                className="btn btn-teal"
+                style={{
+                  padding: '14px 28px',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  alignSelf: 'flex-start',
+                  boxShadow: '0 0 15px rgba(20, 184, 166, 0.25)'
+                }}
+              >
+                Save Site Configurations
+              </button>
+            </form>
+          </GlassCard>
+        )}
+
+        {/* Configured Delivery Locations Panel */}
+        {activeTab === 'locations' && (
+          <GlassCard>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <MapPin size={22} style={{ color: 'var(--primary-blue)' }} /> Configured Delivery Locations
+              </h3>
+              {!showLocationForm && (
+                <button onClick={() => setShowLocationForm(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Plus size={16} /> Configure Location
+                </button>
+              )}
+            </div>
+
+            {showLocationForm && (
+              <form onSubmit={handleAddDeliveryLocation} style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>Add Delivery Area</h4>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                  <div className="form-group">
+                    <label className="form-label">State / Region *</label>
+                    <input type="text" className="form-control" placeholder="E.g. Andhra Pradesh" value={locState} onChange={e => setLocState(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Area / Locality Name *</label>
+                    <input type="text" className="form-control" placeholder="E.g. Aditya Campus Yelahanka" value={locArea} onChange={e => setLocArea(e.target.value)} required />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '14px' }} className="form-group">
+                  <label className="form-label">🔍 Search Area / Address (Sets coordinates on Map)</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input type="text" className="form-control" placeholder="Type area address to geocode..." value={locSearchQuery} onChange={e => setLocSearchQuery(e.target.value)} />
+                    <button type="button" onClick={handleLocationSearch} className="btn btn-teal">Search</button>
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <label className="form-label">Pin Coordinates (Drag marker on map or click map) *</label>
+                  <div id="admin-location-map" style={{ height: '220px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: '#eee', marginBottom: '8px' }}></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Latitude</span>
+                      <input type="number" step="any" className="form-control" value={locLat} onChange={e => setLocLat(e.target.value)} required />
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Longitude</span>
+                      <input type="number" step="any" className="form-control" value={locLng} onChange={e => setLocLng(e.target.value)} required />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button type="submit" className="btn btn-teal">Save Location</button>
+                  <button type="button" onClick={() => setShowLocationForm(false)} className="btn btn-secondary">Cancel</button>
+                </div>
+              </form>
+            )}
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 8px' }}>Area / Locality</th>
+                    <th style={{ padding: '10px 8px' }}>State</th>
+                    <th style={{ padding: '10px 8px' }}>Latitude</th>
+                    <th style={{ padding: '10px 8px' }}>Longitude</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deliveryLocations.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ padding: '24px 8px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                        No delivery locations configured. Add one to set up delivery service areas.
+                      </td>
+                    </tr>
+                  ) : (
+                    deliveryLocations.map(loc => (
+                      <tr key={loc._id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                        <td style={{ padding: '14px 8px', fontWeight: 600 }}>📍 {loc.area}</td>
+                        <td style={{ padding: '14px 8px' }}>{loc.state}</td>
+                        <td style={{ padding: '14px 8px', fontFamily: 'monospace' }}>{loc.latitude?.toFixed(5)}</td>
+                        <td style={{ padding: '14px 8px', fontFamily: 'monospace' }}>{loc.longitude?.toFixed(5)}</td>
+                        <td style={{ padding: '14px 8px', textAlign: 'right' }}>
+                          <button onClick={() => handleDeleteDeliveryLocation(loc._id, loc.area)} className="btn btn-secondary" style={{ padding: '4px 8px', color: 'var(--danger-red)', fontSize: '0.78rem' }}>
+                            <Trash2 size={12} /> Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </GlassCard>
+        )}
+
+        {/* Homepage Ad Manager Panel */}
+        {activeTab === 'homepage-ads' && (
+          <GlassCard>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Monitor size={22} style={{ color: 'var(--primary-blue)' }} /> Homepage Ad Manager
+              </h3>
+              {!showAdForm && (
+                <button onClick={() => {
+                  setIsEditingAd(false);
+                  setEditingAdId(null);
+                  setAdTitle('');
+                  setAdDesc('');
+                  setAdImageUrl('');
+                  setAdLinkUrl('');
+                  setAdDuration(5);
+                  setAdActive(true);
+                  setShowAdForm(true);
+                }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Plus size={16} /> Create Ad Overlay
+                </button>
+              )}
+            </div>
+
+            {showAdForm && (
+              <form onSubmit={handleSaveAdPopup} style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>{isEditingAd ? 'Edit Ad Overlay' : 'Create Homepage Ad Overlay'}</h4>
+
+                <div className="form-group">
+                  <label className="form-label">Ad Title / Announcement Header *</label>
+                  <input type="text" className="form-control" placeholder="E.g. Special Holiday Health Pack Discount!" value={adTitle} onChange={e => setAdTitle(e.target.value)} required />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Short Description / Subtitle</label>
+                  <textarea className="form-control" rows="2" placeholder="E.g. Get 20% off all medicine purchases this week only. Use coupon code..." value={adDesc} onChange={e => setAdDesc(e.target.value)}></textarea>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Target Link Website URL</label>
+                    <input type="url" className="form-control" placeholder="E.g. https://website.com/promo" value={adLinkUrl} onChange={e => setAdLinkUrl(e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Skip Ad Timer Duration (seconds) *</label>
+                    <input type="number" min="3" max="30" className="form-control" value={adDuration} onChange={e => setAdDuration(e.target.value)} required />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Ad Banner Photo / Graphic Upload</label>
+                  <input type="file" className="form-control" accept="image/*" onChange={handleAdPhotoUpload} />
+                  {adImageUrl && (
+                    <div style={{ marginTop: '10px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Banner Preview:</span>
+                      <img src={adImageUrl} alt="Banner Preview" style={{ display: 'block', maxHeight: '160px', borderRadius: '8px', border: '1px solid var(--glass-border)', marginTop: '6px' }} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <input type="checkbox" id="adActive" checked={adActive} onChange={e => setAdActive(e.checked || e.target.checked)} />
+                  <label htmlFor="adActive" style={{ fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}>Mark Ad Popup Active (Only one ad can be active at a time)</label>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button type="submit" className="btn btn-teal">Save Ad Overlay</button>
+                  <button type="button" onClick={() => setShowAdForm(false)} className="btn btn-secondary">Cancel</button>
+                </div>
+              </form>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {adPopups.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', gridColumn: '1 / -1' }}>No ad popups created yet. Add one to show a splash overlay on landing page.</p>
+              ) : (
+                adPopups.map(ad => (
+                  <div key={ad._id} style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '18px', border: ad.active ? '2px solid var(--success-green)' : '1px solid var(--glass-border)', position: 'relative' }}>
+                    {ad.active && (
+                      <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--success-green)', color: 'white', fontSize: '0.7rem', fontWeight: 800, padding: '2px 8px', borderRadius: '8px' }}>
+                        ACTIVE
+                      </span>
+                    )}
+                    <h4 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '8px', paddingRight: '50px' }}>{ad.title}</h4>
+                    {ad.description && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>{ad.description}</p>}
+                    
+                    {ad.imageUrl && (
+                      <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', maxHeight: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '12px' }} />
+                    )}
+
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
+                      <div>⏱️ Timer: {ad.duration} seconds</div>
+                      {ad.linkUrl && <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>🔗 Link: <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer">{ad.linkUrl}</a></div>}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => {
+                        setIsEditingAd(true);
+                        setEditingAdId(ad._id);
+                        setAdTitle(ad.title);
+                        setAdDesc(ad.description || '');
+                        setAdImageUrl(ad.imageUrl || '');
+                        setAdLinkUrl(ad.linkUrl || '');
+                        setAdDuration(ad.duration || 5);
+                        setAdActive(ad.active);
+                        setShowAdForm(true);
+                      }} className="btn btn-secondary" style={{ flexGrow: 1, padding: '6px', fontSize: '0.78rem' }}>
+                        Edit
+                      </button>
+                      <button onClick={() => handleDeleteAdPopup(ad._id, ad.title)} className="btn btn-secondary" style={{ padding: '6px', fontSize: '0.78rem', color: 'var(--danger-red)', borderColor: 'rgba(239,68,68,0.15)' }}>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </GlassCard>
+        )}
+
+        {/* Collaborators Panel */}
+        {activeTab === 'collaborators' && (
+          <GlassCard>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 style={{ fontSize: '1.25rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Users size={22} style={{ color: 'var(--primary-blue)' }} /> Collaborators & Partners Panel
+              </h3>
+              {!showCollabForm && (
+                <button onClick={() => {
+                  setIsEditingCollab(false);
+                  setEditingCollabId(null);
+                  setCollabName('');
+                  setCollabPhoto('');
+                  setCollabLink('');
+                  setShowCollabForm(true);
+                }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Plus size={16} /> Add Collaborator
+                </button>
+              )}
+            </div>
+
+            {showCollabForm && (
+              <form onSubmit={handleSaveCollaborator} style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>{isEditingCollab ? 'Edit Collaborator' : 'Add Collaborator'}</h4>
+
+                <div className="form-group">
+                  <label className="form-label">Collaborator / Sponsor Name *</label>
+                  <input type="text" className="form-control" placeholder="E.g. Apollo Pharmacy or WHO" value={collabName} onChange={e => setCollabName(e.target.value)} required />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Website Link / URL *</label>
+                  <input type="url" className="form-control" placeholder="E.g. https://apollo.com" value={collabLink} onChange={e => setCollabLink(e.target.value)} required />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Logo / Photo</label>
+                  <input type="file" className="form-control" accept="image/*" onChange={handleCollabPhotoUpload} />
+                  {collabPhoto && (
+                    <div style={{ marginTop: '10px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Logo Preview:</span>
+                      <img src={collabPhoto} alt="Logo Preview" style={{ display: 'block', maxHeight: '100px', maxWidth: '100px', borderRadius: '8px', border: '1px solid var(--glass-border)', marginTop: '6px', objectFit: 'contain' }} />
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button type="submit" className="btn btn-teal">Save Collaborator</button>
+                  <button type="button" onClick={() => setShowCollabForm(false)} className="btn btn-secondary">Cancel</button>
+                </div>
+              </form>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+              {collaborators.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', gridColumn: '1 / -1' }}>No collaborators configured. Add partners to show them on the Home page.</p>
+              ) : (
+                collaborators.map(c => (
+                  <div key={c._id} style={{ background: 'var(--bg-primary)', borderRadius: '12px', padding: '16px', border: '1px solid var(--glass-border)', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+                      {c.photo ? (
+                        <img src={c.photo} alt={c.name} style={{ height: '70px', width: '70px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--glass-border)', background: '#fff', padding: '4px' }} />
+                      ) : (
+                        <div style={{ height: '70px', width: '70px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--primary-blue), var(--accent-teal))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.5rem' }}>
+                          {c.name?.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <h4 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '6px' }}>{c.name}</h4>
+                    <a href={c.websiteLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.78rem', color: 'var(--primary-blue)', display: 'block', marginBottom: '14px', textDecoration: 'underline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      Visit Website
+                    </a>
+
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => {
+                        setIsEditingCollab(true);
+                        setEditingCollabId(c._id);
+                        setCollabName(c.name);
+                        setCollabPhoto(c.photo || '');
+                        setCollabLink(c.websiteLink);
+                        setShowCollabForm(true);
+                      }} className="btn btn-secondary" style={{ flexGrow: 1, padding: '4px', fontSize: '0.75rem' }}>
+                        Edit
+                      </button>
+                      <button onClick={() => handleDeleteCollaborator(c._id, c.name)} className="btn btn-secondary" style={{ padding: '4px', fontSize: '0.75rem', color: 'var(--danger-red)', borderColor: 'rgba(239,68,68,0.15)' }}>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </GlassCard>
+        )}
+
+        {/* Doctor Verification Details Modal */}
+        {detailDoctor && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(11, 19, 41, 0.85)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+          }}>
+            <GlassCard style={{ width: '560px', padding: '28px', margin: '20px', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Dr. {detailDoctor.name} - Verification Details</h3>
+                <button onClick={() => setDetailDoctor(null)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.9rem' }}>
+                <div><strong>Email:</strong> {detailDoctor.email}</div>
+                <div><strong>Specialization:</strong> {detailDoctor.doctorDetails?.specialization}</div>
+                <div><strong>Experience:</strong> {detailDoctor.doctorDetails?.experience} Years</div>
+                <div><strong>Clinic Address:</strong> {detailDoctor.doctorDetails?.clinicInfo}</div>
+                <div><strong>Contact Number:</strong> {detailDoctor.doctorDetails?.contactNumber || '—'}</div>
+                
+                {/* Doctor Documents */}
+                <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px', marginTop: '8px' }}>
+                  <h4 style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '10px' }}>Verification Documents</h4>
+                  
+                  {detailDoctor.doctorDetails?.licenseDocument ? (
+                    <div style={{ marginBottom: '16px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Medical License / Registration:</span>
+                      {detailDoctor.doctorDetails.licenseDocument.startsWith('data:application/pdf') ? (
+                        <a href={detailDoctor.doctorDetails.licenseDocument} download={`Dr_${detailDoctor.name}_License.pdf`} className="btn btn-teal" style={{ display: 'inline-block', fontSize: '0.8rem', padding: '6px 12px' }}>Download License PDF</a>
+                      ) : (
+                        <img src={detailDoctor.doctorDetails.licenseDocument} alt="License" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                      )}
+                    </div>
+                  ) : <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No License Document Uploaded</p>}
+
+                  {detailDoctor.doctorDetails?.educationQualification && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Educational Qualification Certificate:</span>
+                      {detailDoctor.doctorDetails.educationQualification.startsWith('data:application/pdf') ? (
+                        <a href={detailDoctor.doctorDetails.educationQualification} download={`Dr_${detailDoctor.name}_Education.pdf`} className="btn btn-teal" style={{ display: 'inline-block', fontSize: '0.8rem', padding: '6px 12px' }}>Download Education PDF</a>
+                      ) : (
+                        <img src={detailDoctor.doctorDetails.educationQualification} alt="Education Cert" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                      )}
+                    </div>
+                  )}
+
+                  {detailDoctor.doctorDetails?.otherDocuments && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Other Supporting Documents:</span>
+                      {detailDoctor.doctorDetails.otherDocuments.startsWith('data:application/pdf') ? (
+                        <a href={detailDoctor.doctorDetails.otherDocuments} download={`Dr_${detailDoctor.name}_Other.pdf`} className="btn btn-teal" style={{ display: 'inline-block', fontSize: '0.8rem', padding: '6px 12px' }}>Download Support PDF</a>
+                      ) : (
+                        <img src={detailDoctor.doctorDetails.otherDocuments} alt="Other Doc" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>
+                <button
+                  onClick={() => { handleApproveDoctor(detailDoctor._id, detailDoctor.name, true); setDetailDoctor(null); }}
+                  className="btn btn-teal"
+                  style={{ flexGrow: 1 }}
+                >
+                  Approve Registration
+                </button>
+                <button
+                  onClick={() => { if (window.confirm(`Reject Dr. ${detailDoctor.name}?`)) { handleApproveDoctor(detailDoctor._id, detailDoctor.name, false); setDetailDoctor(null); } }}
+                  className="btn btn-secondary"
+                  style={{ color: 'var(--danger-red)' }}
+                >
+                  Reject
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+        )}
+
+        {/* Driver Verification Details Modal */}
+        {detailDriver && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(11, 19, 41, 0.85)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+          }}>
+            <GlassCard style={{ width: '500px', padding: '28px', margin: '20px', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>Driver: {detailDriver.name} - Verification</h3>
+                <button onClick={() => setDetailDriver(null)} style={{ border: 'none', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.9rem' }}>
+                <div><strong>Email:</strong> {detailDriver.email}</div>
+                <div><strong>Age:</strong> {detailDriver.driverDetails?.age} Years</div>
+                <div><strong>Vehicle Name:</strong> {detailDriver.driverDetails?.vehicleName}</div>
+                <div><strong>Vehicle Number:</strong> {detailDriver.driverDetails?.vehicleNumber}</div>
+                <div><strong>License Number:</strong> {detailDriver.driverDetails?.licenseNumber}</div>
+                
+                {detailDriver.driverDetails?.licensePhoto && (
+                  <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '14px', marginTop: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>📸 License Photo:</span>
+                    <img src={detailDriver.driverDetails.licensePhoto} alt="License Photo" style={{ width: '100%', maxHeight: '260px', objectFit: 'contain', borderRadius: '8px', border: '1px solid var(--glass-border)' }} />
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px', borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>
+                <button
+                  onClick={() => { handleApproveDriver(detailDriver._id, detailDriver.name, true); setDetailDriver(null); }}
+                  className="btn btn-teal"
+                  style={{ flexGrow: 1 }}
+                >
+                  Approve Driver
+                </button>
+                <button
+                  onClick={() => { if (window.confirm(`Reject driver ${detailDriver.name}?`)) { handleApproveDriver(detailDriver._id, detailDriver.name, false); setDetailDriver(null); } }}
+                  className="btn btn-secondary"
+                  style={{ color: 'var(--danger-red)' }}
+                >
+                  Reject
+                </button>
+              </div>
+            </GlassCard>
+          </div>
         )}
 
           </div> {/* Close tab-content animate-fade-in-up */}

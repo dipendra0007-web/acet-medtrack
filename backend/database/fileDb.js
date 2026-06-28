@@ -39,13 +39,38 @@ function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+function getNestedValue(obj, path) {
+  if (!obj || !path) return undefined;
+  return path.split('.').reduce((acc, part) => {
+    return acc && acc[part] !== undefined ? acc[part] : undefined;
+  }, obj);
+}
+
+function setNestedValue(obj, path, value) {
+  const parts = path.split('.');
+  let current = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i];
+    if (current[part] === undefined || typeof current[part] !== 'object') {
+      current[part] = {};
+    }
+    // Deep copy current[part] if it's an object to ensure we don't accidentally mutate shared references
+    current[part] = { ...current[part] };
+    current = current[part];
+  }
+  current[parts[parts.length - 1]] = value;
+}
+
 const FileDb = {
   find: (collection, query = {}) => {
     let items = readCollection(collection);
     return items.filter(item => {
       for (let key in query) {
-        if (query[key] !== undefined && item[key] !== query[key]) {
-          return false;
+        if (query[key] !== undefined) {
+          const value = getNestedValue(item, key);
+          if (value !== query[key]) {
+            return false;
+          }
         }
       }
       return true;
@@ -80,12 +105,15 @@ const FileDb = {
     const index = items.findIndex(item => item._id === id || item.id === id);
     if (index === -1) return null;
     
-    let updatedDoc = { ...items[index] };
-    if (update.$set) {
-      updatedDoc = { ...updatedDoc, ...update.$set };
-    } else {
-      updatedDoc = { ...updatedDoc, ...update };
+    // Deep clone to prevent any object reference mutation side effects
+    let updatedDoc = JSON.parse(JSON.stringify(items[index]));
+    
+    const setObj = update.$set || update;
+    for (let key in setObj) {
+      if (key === '$set') continue;
+      setNestedValue(updatedDoc, key, setObj[key]);
     }
+    
     updatedDoc.updatedAt = new Date().toISOString();
     
     items[index] = updatedDoc;
@@ -97,7 +125,8 @@ const FileDb = {
     const items = readCollection(collection);
     const index = items.findIndex(item => {
       for (let key in query) {
-        if (item[key] !== query[key]) return false;
+        const value = getNestedValue(item, key);
+        if (value !== query[key]) return false;
       }
       return true;
     });
@@ -112,7 +141,8 @@ const FileDb = {
     const beforeCount = items.length;
     const remaining = items.filter(item => {
       for (let key in query) {
-        if (item[key] === query[key]) return false;
+        const value = getNestedValue(item, key);
+        if (value === query[key]) return false;
       }
       return true;
     });

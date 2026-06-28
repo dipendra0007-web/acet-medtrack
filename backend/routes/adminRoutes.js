@@ -1,6 +1,33 @@
 const express = require('express');
 const router = express.Router();
-const { getAdminDashboard, getAllUsers, deleteUser, approveDoctor, approveDriver, getSystemLogs, createShopItem, updateShopItem, deleteShopItem, getAllOrders, updateOrderStatus, factoryReset } = require('../controllers/adminController');
+const { 
+  getAdminDashboard, 
+  getAllUsers, 
+  deleteUser, 
+  approveDoctor, 
+  approveDriver, 
+  getSystemLogs, 
+  createShopItem, 
+  updateShopItem, 
+  deleteShopItem, 
+  getAllOrders, 
+  updateOrderStatus, 
+  factoryReset,
+  updateUserRole,
+  getAdPopups,
+  createAdPopup,
+  updateAdPopup,
+  deleteAdPopup,
+  getCollaborators,
+  createCollaborator,
+  updateCollaborator,
+  deleteCollaborator,
+  getDeliveryLocations,
+  createDeliveryLocation,
+  deleteDeliveryLocation,
+  getWebSettings,
+  updateWebSettings
+} = require('../controllers/adminController');
 const { createTeamMember, updateTeamMember, deleteTeamMember } = require('../controllers/teamController');
 const { getAllReviews, approveReview, deleteReview } = require('../controllers/reviewController');
 const { createGalleryItem, deleteGalleryItem } = require('../controllers/galleryController');
@@ -13,6 +40,26 @@ router.put('/doctors/:id/approve', protect, authorize('admin'), approveDoctor);
 router.put('/drivers/:id/approve', protect, authorize('admin'), approveDriver);
 router.get('/logs', protect, authorize('admin'), getSystemLogs);
 router.post('/factory-reset', protect, authorize('admin'), factoryReset);
+
+// Team Role / Access Management
+router.put('/users/:id/role', protect, authorize('admin'), updateUserRole);
+
+// Delivery Locations Management
+router.get('/delivery-locations', protect, authorize('admin'), getDeliveryLocations);
+router.post('/delivery-locations', protect, authorize('admin'), createDeliveryLocation);
+router.delete('/delivery-locations/:id', protect, authorize('admin'), deleteDeliveryLocation);
+
+// Homepage Ad Popup Management
+router.get('/ad-popup', protect, authorize('admin'), getAdPopups);
+router.post('/ad-popup', protect, authorize('admin'), createAdPopup);
+router.put('/ad-popup/:id', protect, authorize('admin'), updateAdPopup);
+router.delete('/ad-popup/:id', protect, authorize('admin'), deleteAdPopup);
+
+// Collaborators Management
+router.get('/collaborators', protect, authorize('admin'), getCollaborators);
+router.post('/collaborators', protect, authorize('admin'), createCollaborator);
+router.put('/collaborators/:id', protect, authorize('admin'), updateCollaborator);
+router.delete('/collaborators/:id', protect, authorize('admin'), deleteCollaborator);
 
 // Team Management
 router.post('/team', protect, authorize('admin'), createTeamMember);
@@ -36,5 +83,9 @@ router.delete('/shop/:id', protect, authorize('admin'), deleteShopItem);
 // Order Management
 router.get('/orders', protect, authorize('admin'), getAllOrders);
 router.put('/orders/:id/status', protect, authorize('admin'), updateOrderStatus);
+
+// Web Settings Customization
+router.get('/settings', protect, authorize('admin'), getWebSettings);
+router.post('/settings', protect, authorize('admin'), updateWebSettings);
 
 module.exports = router;

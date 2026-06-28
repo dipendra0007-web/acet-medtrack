@@ -4,6 +4,10 @@ const MedicineReminder = require('../models/MedicineReminder');
 const SystemLog = require('../models/SystemLog');
 const ShopItem = require('../models/ShopItem');
 const Order = require('../models/Order');
+const AdPopup = require('../models/AdPopup');
+const Collaborator = require('../models/Collaborator');
+const DeliveryLocation = require('../models/DeliveryLocation');
+const WebSetting = require('../models/WebSetting');
 const { logEvent } = require('../utils/logger');
 const { sendNotification } = require('../utils/notifier');
 
@@ -55,17 +59,7 @@ const getAllUsers = async (req, res) => {
       // Use toObject() for Mongoose docs, spread for plain objects (JSON file mode)
       const copy = typeof u.toObject === 'function' ? u.toObject() : { ...u };
       delete copy.password;
-      // Also strip large base64 doctor documents to keep response lean
-      if (copy.doctorDetails) {
-        copy.doctorDetails = { ...copy.doctorDetails };
-        delete copy.doctorDetails.licenseDocument;
-        delete copy.doctorDetails.educationQualification;
-        delete copy.doctorDetails.otherDocuments;
-      }
-      if (copy.driverDetails) {
-        copy.driverDetails = { ...copy.driverDetails };
-        delete copy.driverDetails.licensePhoto;
-      }
+      // Do not strip documents for admin panel details verification
       return copy;
     });
     res.json(cleanedUsers);
@@ -262,6 +256,13 @@ const updateOrderStatus = async (req, res) => {
       // If a registered driver was selected, update their status to on_delivery
       if (driverId) {
         await User.findByIdAndUpdate(driverId, { $set: { 'driverDetails.status': 'on_delivery' } });
+        // Notify driver of assigned delivery with Google Maps link
+        await sendNotification(
+          driverId,
+          'New Delivery Assigned 📦',
+          `You have been assigned order #${order._id.substring(0, 8)}... for patient ${order.patientName}. Destination Floor: ${deliveryFloor || '-'}, Street: ${deliveryStreet || '-'}, Area: ${deliveryArea || '-'}, Landmark: ${deliveryLandmark || '-'}. Google Maps link: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.coordinates || '')}`,
+          'delivery_assign'
+        );
       }
 
       await sendNotification(
@@ -335,6 +336,219 @@ const factoryReset = async (req, res) => {
   }
 };
 
+const updateUserRole = async (req, res) => {
+  const userId = req.params.id;
+  const { role } = req.body;
+  const validRoles = ['patient', 'doctor', 'admin', 'driver'];
+
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Invalid role' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user._id === req.user.id) {
+      return res.status(400).json({ message: 'You cannot change your own role' });
+    }
+
+    await User.findByIdAndUpdate(userId, { $set: { role } });
+    await logEvent('UPDATE_USER_ROLE', req.user.id, req.user.name, req.user.role, `Updated user ${user.name} (${user.email}) role to ${role}`);
+    res.json({ message: `User role updated to ${role} successfully` });
+  } catch (error) {
+    console.error('Update user role error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// AdPopup CRUD
+const getAdPopups = async (req, res) => {
+  try {
+    const ads = await AdPopup.find({});
+    res.json(ads);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const createAdPopup = async (req, res) => {
+  const { title, description, imageUrl, linkUrl, duration, active } = req.body;
+  try {
+    if (active) {
+      const allAds = await AdPopup.find({});
+      for (const ad of allAds) {
+        await AdPopup.findByIdAndUpdate(ad._id, { $set: { active: false } });
+      }
+    }
+    const newAd = await AdPopup.create({ title, description, imageUrl, linkUrl, duration: Number(duration || 5), active: !!active });
+    await logEvent('AD_POPUP_CREATED', req.user.id, req.user.name, req.user.role, `Created homepage ad popup: ${title}`);
+    res.status(201).json(newAd);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const updateAdPopup = async (req, res) => {
+  const { id } = req.params;
+  const { title, description, imageUrl, linkUrl, duration, active } = req.body;
+  try {
+    if (active) {
+      const allAds = await AdPopup.find({});
+      for (const ad of allAds) {
+        if (ad._id !== id) {
+          await AdPopup.findByIdAndUpdate(ad._id, { $set: { active: false } });
+        }
+      }
+    }
+    const updated = await AdPopup.findByIdAndUpdate(id, { $set: { title, description, imageUrl, linkUrl, duration: Number(duration || 5), active: !!active } }, { new: true });
+    await logEvent('AD_POPUP_UPDATED', req.user.id, req.user.name, req.user.role, `Updated homepage ad popup: ${title}`);
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteAdPopup = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const ad = await AdPopup.findById(id);
+    if (!ad) return res.status(404).json({ message: 'Ad not found' });
+    await AdPopup.deleteOne({ _id: id });
+    await logEvent('AD_POPUP_DELETED', req.user.id, req.user.name, req.user.role, `Deleted homepage ad popup: ${ad.title}`);
+    res.json({ message: 'Ad popup deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Collaborator CRUD
+const getCollaborators = async (req, res) => {
+  try {
+    const collabs = await Collaborator.find({});
+    res.json(collabs);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const createCollaborator = async (req, res) => {
+  const { name, photo, websiteLink } = req.body;
+  try {
+    const newCollab = await Collaborator.create({ name, photo, websiteLink });
+    await logEvent('COLLABORATOR_CREATED', req.user.id, req.user.name, req.user.role, `Created collaborator: ${name}`);
+    res.status(201).json(newCollab);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const updateCollaborator = async (req, res) => {
+  const { id } = req.params;
+  const { name, photo, websiteLink } = req.body;
+  try {
+    const updated = await Collaborator.findByIdAndUpdate(id, { $set: { name, photo, websiteLink } }, { new: true });
+    await logEvent('COLLABORATOR_UPDATED', req.user.id, req.user.name, req.user.role, `Updated collaborator: ${name}`);
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteCollaborator = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const collab = await Collaborator.findById(id);
+    if (!collab) return res.status(404).json({ message: 'Collaborator not found' });
+    await Collaborator.deleteOne({ _id: id });
+    await logEvent('COLLABORATOR_DELETED', req.user.id, req.user.name, req.user.role, `Deleted collaborator: ${collab.name}`);
+    res.json({ message: 'Collaborator deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// DeliveryLocation CRUD
+const getDeliveryLocations = async (req, res) => {
+  try {
+    const locations = await DeliveryLocation.find({});
+    res.json(locations);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const createDeliveryLocation = async (req, res) => {
+  const { state, area, latitude, longitude } = req.body;
+  try {
+    const newLoc = await DeliveryLocation.create({ state, area, latitude: Number(latitude), longitude: Number(longitude) });
+    await logEvent('DELIVERY_LOCATION_CREATED', req.user.id, req.user.name, req.user.role, `Created delivery area: ${area}, ${state}`);
+    res.status(201).json(newLoc);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteDeliveryLocation = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const loc = await DeliveryLocation.findById(id);
+    if (!loc) return res.status(404).json({ message: 'Delivery location not found' });
+    await DeliveryLocation.deleteOne({ _id: id });
+    await logEvent('DELIVERY_LOCATION_DELETED', req.user.id, req.user.name, req.user.role, `Deleted delivery area: ${loc.area}`);
+    res.json({ message: 'Delivery location deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getWebSettings = async (req, res) => {
+  try {
+    let settings = await WebSetting.findOne();
+    if (!settings) {
+      settings = await WebSetting.create({
+        websiteName: 'ACET MEDTRACK',
+        logo: '',
+        footerLocation: 'ACET Campus, NH-16, Aditya Nagar, Surampalem, East Godavari, Andhra Pradesh, India',
+        footerPhone: '+91 8792714127',
+        footerCopyright: '© 2026 ACET MEDTRACK – Crafted by Dipendra Upadhayay and TEAM',
+        openingAnimationActive: true,
+        openingAnimationText: 'ACET MEDTRACK',
+        openingAnimationLogo: '',
+        customNavLinks: [
+          { label: 'Home', path: '/' },
+          { label: 'About Us', path: '/about' },
+          { label: 'Services', path: '/services' },
+          { label: 'Our Team', path: '/team' },
+          { label: 'Gallery', path: '/gallery' },
+          { label: 'Shop', path: '/shop' },
+          { label: 'Contact Us', path: '/contact' }
+        ]
+      });
+    }
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error retrieving settings', error: err.message });
+  }
+};
+
+const updateWebSettings = async (req, res) => {
+  try {
+    let settings = await WebSetting.findOne();
+    if (!settings) {
+      settings = await WebSetting.create(req.body);
+    } else {
+      settings = await WebSetting.findByIdAndUpdate(settings._id || settings.id, req.body, { new: true });
+    }
+    await logEvent('SETTINGS_UPDATED', req.user.id, req.user.name, req.user.role, `Updated website appearance configurations`);
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error updating settings', error: err.message });
+  }
+};
+
 module.exports = {
   getAdminDashboard,
   getAllUsers,
@@ -347,5 +561,19 @@ module.exports = {
   deleteShopItem,
   getAllOrders,
   updateOrderStatus,
-  factoryReset
+  factoryReset,
+  updateUserRole,
+  getAdPopups,
+  createAdPopup,
+  updateAdPopup,
+  deleteAdPopup,
+  getCollaborators,
+  createCollaborator,
+  updateCollaborator,
+  deleteCollaborator,
+  getDeliveryLocations,
+  createDeliveryLocation,
+  deleteDeliveryLocation,
+  getWebSettings,
+  updateWebSettings
 };

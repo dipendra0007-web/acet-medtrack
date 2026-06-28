@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Mail, Phone, MapPin, ExternalLink, Download } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import { API_BASE_URL } from '../utils/api';
 
 const Footer = () => {
+  const { settings } = useSettings();
   const [releases, setReleases] = useState([]);
 
   useEffect(() => {
@@ -251,17 +253,18 @@ const Footer = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img
-                src="/logo.jpg"
-                alt="ACET MEDTRACK Logo"
+                src={settings?.logo || "/logo.jpg"}
+                alt={`${settings?.websiteName || 'ACET MEDTRACK'} Logo`}
                 style={{ height: '36px', width: '36px', borderRadius: '50%' }}
               />
               <span style={{
                 fontFamily: 'var(--font-title)',
                 fontWeight: 800,
                 color: 'var(--primary-blue)',
-                fontSize: '1.2rem'
+                fontSize: '1.2rem',
+                textTransform: 'uppercase'
               }}>
-                ACET MEDTRACK
+                {settings?.websiteName || 'ACET MEDTRACK'}
               </span>
             </div>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
@@ -292,11 +295,11 @@ const Footer = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                 <MapPin size={16} style={{ color: 'var(--primary-blue)', flexShrink: 0, marginTop: '2px' }} />
-                <span>ADITYA COLLEGE OF ENGINEERING, YEHLENKA KAMKSHIPURA-560089</span>
+                <span>{settings?.footerLocation || "ADITYA COLLEGE OF ENGINEERING, YEHLENKA KAMKSHIPURA-560089"}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Phone size={16} style={{ color: 'var(--primary-blue)', flexShrink: 0 }} />
-                <span>+91 8792714127</span>
+                <span>{settings?.footerPhone || "+91 8792714127"}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Mail size={16} style={{ color: 'var(--primary-blue)', flexShrink: 0 }} />
@@ -422,7 +425,7 @@ const Footer = () => {
           gap: '16px',
           fontSize: '0.85rem'
         }}>
-          <span>ACET MEDTRACK © 2026 – Crafted by Dipendra Upadhayay and TEAM</span>
+          <span>{settings?.footerCopyright || "ACET MEDTRACK © 2026 – Crafted by Dipendra Upadhayay and TEAM"}</span>
           <div style={{ display: 'flex', gap: '16px' }}>
             <Link to="/download" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary-blue)', fontWeight: 600 }}>
               📲 Download App

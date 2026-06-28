@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../context/SettingsContext';
 import { Activity, Sun, Moon, Menu, X, LogOut, User as UserIcon } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { settings } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,14 +21,14 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'About Us', path: '/about' },
-    { name: 'Services', path: '/services' },
-    { name: 'Our Team', path: '/team' },
-    { name: 'Gallery', path: '/gallery' },
-    { name: 'Shop', path: '/shop' },
-    { name: 'Contact Us', path: '/contact' }
+  const navLinks = settings?.customNavLinks?.length > 0 ? settings.customNavLinks : [
+    { label: 'Home', path: '/' },
+    { label: 'About Us', path: '/about' },
+    { label: 'Services', path: '/services' },
+    { label: 'Our Team', path: '/team' },
+    { label: 'Gallery', path: '/gallery' },
+    { label: 'Shop', path: '/shop' },
+    { label: 'Contact Us', path: '/contact' }
   ];
 
   return (
@@ -49,8 +51,8 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img 
-            src="/logo.jpg" 
-            alt="ACET MEDTRACK Logo" 
+            src={settings?.logo || "/logo.jpg"} 
+            alt={`${settings?.websiteName || 'ACET MEDTRACK'} Logo`} 
             style={{ 
               height: '46px', 
               width: '46px', 
@@ -60,7 +62,7 @@ const Navbar = () => {
             }} 
             onError={(e) => {
               e.target.onerror = null;
-              e.target.style.display = 'none'; // Fallback to icon if logo fails to render
+              e.target.style.display = 'none';
             }}
           />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -69,18 +71,10 @@ const Navbar = () => {
               fontWeight: 800,
               fontSize: '1.25rem',
               color: 'var(--primary-blue)',
-              lineHeight: 1.1
+              lineHeight: 1.1,
+              textTransform: 'uppercase'
             }}>
-              ACET
-            </span>
-            <span style={{ 
-              fontFamily: 'var(--font-title)',
-              fontWeight: 600,
-              fontSize: '0.8rem',
-              color: 'var(--text-primary)',
-              letterSpacing: '0.1em'
-            }}>
-              MEDTRACK
+              {settings?.websiteName || 'ACET MEDTRACK'}
             </span>
           </div>
         </Link>
@@ -89,7 +83,7 @@ const Navbar = () => {
         <div style={{ display: 'none', md: 'flex', alignItems: 'center', gap: '28px' }} className="desktop-nav">
           {navLinks.map((link) => (
             <Link 
-              key={link.name} 
+              key={link.label || link.name} 
               to={link.path} 
               style={{
                 fontWeight: 500,
@@ -106,7 +100,7 @@ const Navbar = () => {
                 if(!isActive(link.path)) e.target.style.color = 'var(--text-secondary)';
               }}
             >
-              {link.name}
+              {link.label || link.name}
             </Link>
           ))}
           
@@ -238,7 +232,7 @@ const Navbar = () => {
         }} className="mobile-menu">
           {navLinks.map((link) => (
             <Link 
-              key={link.name} 
+              key={link.label || link.name} 
               to={link.path} 
               onClick={() => setIsOpen(false)}
               style={{
@@ -248,7 +242,7 @@ const Navbar = () => {
                 borderBottom: '1px solid var(--glass-border)'
               }}
             >
-              {link.name}
+              {link.label || link.name}
             </Link>
           ))}
           

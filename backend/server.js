@@ -80,6 +80,73 @@ app.use('/api/releases', releaseRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/driver', driverRoutes);
 
+// Public Ad, Collaborators and Delivery Locations Endpoints
+const AdPopup = require('./models/AdPopup');
+const Collaborator = require('./models/Collaborator');
+const DeliveryLocation = require('./models/DeliveryLocation');
+const WebSetting = require('./models/WebSetting');
+
+app.get('/api/public/settings', async (req, res) => {
+  try {
+    let settings = await WebSetting.findOne();
+    if (!settings) {
+      settings = await WebSetting.create({
+        websiteName: 'ACET MEDTRACK',
+        logo: '',
+        footerLocation: 'ACET Campus, NH-16, Aditya Nagar, Surampalem, East Godavari, Andhra Pradesh, India',
+        footerPhone: '+91 8792714127',
+        footerCopyright: '© 2026 ACET MEDTRACK – Crafted by Dipendra Upadhayay and TEAM',
+        openingAnimationActive: true,
+        openingAnimationText: 'ACET MEDTRACK',
+        openingAnimationLogo: '',
+        customNavLinks: [
+          { label: 'Home', path: '/' },
+          { label: 'About Us', path: '/about' },
+          { label: 'Services', path: '/services' },
+          { label: 'Our Team', path: '/team' },
+          { label: 'Gallery', path: '/gallery' },
+          { label: 'Shop', path: '/shop' },
+          { label: 'Contact Us', path: '/contact' }
+        ]
+      });
+    }
+    res.json(settings);
+  } catch (err) {
+    console.error('Error fetching public settings:', err);
+    res.status(500).json({ message: 'Server error fetching public settings' });
+  }
+});
+
+app.get('/api/public/ad-popup/active', async (req, res) => {
+  try {
+    const activeAd = await AdPopup.findOne({ active: true });
+    res.json(activeAd || null);
+  } catch (err) {
+    console.error('Error fetching active ad popup:', err);
+    res.status(500).json({ message: 'Server error fetching ad' });
+  }
+});
+
+app.get('/api/public/collaborators', async (req, res) => {
+  try {
+    const collabs = await Collaborator.find({});
+    res.json(collabs || []);
+  } catch (err) {
+    console.error('Error fetching collaborators:', err);
+    res.status(500).json({ message: 'Server error fetching collaborators' });
+  }
+});
+
+app.get('/api/public/delivery-locations', async (req, res) => {
+  try {
+    const locations = await DeliveryLocation.find({});
+    res.json(locations || []);
+  } catch (err) {
+    console.error('Error fetching delivery locations:', err);
+    res.status(500).json({ message: 'Server error fetching delivery locations' });
+  }
+});
+
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.json({
