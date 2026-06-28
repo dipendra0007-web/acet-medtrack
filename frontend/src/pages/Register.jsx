@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/api';
 import GlassCard from '../components/GlassCard';
 import { UserPlus, User, Shield, Key, FileText, CheckCircle2, ShieldAlert, Car, MapPin, Phone, Upload } from 'lucide-react';
 
@@ -26,6 +27,51 @@ const fileToBase64 = (file) => new Promise((resolve, reject) => {
 const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  const [deliveryLocations, setDeliveryLocations] = useState([]);
+  const [selectedLocationId, setSelectedLocationId] = useState('');
+  const [configSettings, setConfigSettings] = useState(null);
+
+  // New Patient registration states
+  const [patientAge, setPatientAge] = useState('');
+  const [patientGender, setPatientGender] = useState('');
+  const [patientBloodGroup, setPatientBloodGroup] = useState('');
+  const [patientAllergies, setPatientAllergies] = useState('');
+
+  // Fetch settings & locations
+  useEffect(() => {
+    const fetchRegData = async () => {
+      try {
+        const settingsRes = await api.get('/public/settings');
+        setConfigSettings(settingsRes);
+        const locsRes = await api.get('/public/delivery-locations');
+        setDeliveryLocations(locsRes || []);
+      } catch (err) {
+        console.error('Error fetching registration options:', err);
+      }
+    };
+    fetchRegData();
+  }, []);
+
+  const handleLocationChange = (locId) => {
+    setSelectedLocationId(locId);
+    if (!locId) {
+      setCountry('India');
+      setState('');
+      setCity('');
+      setPincode('');
+      setLandmark('');
+      return;
+    }
+    const selected = deliveryLocations.find(l => l._id === locId);
+    if (selected) {
+      setCountry(selected.country || 'India');
+      setState(selected.state || '');
+      setCity(selected.district || '');
+      setLandmark(selected.ward ? `${selected.ward} - ${selected.area}` : selected.area || '');
+      setPincode(selected.ward || '');
+    }
+  };
 
   const [role, setRole] = useState('patient');
   const [name, setName] = useState('');
@@ -90,11 +136,50 @@ const Register = () => {
 
     if (password !== confirmPassword) return setError('Passwords do not match');
     if (password.length < 6) return setError('Password must be at least 6 characters');
-    if (role === 'driver' && (!licenseNumber || !vehicleNumber || !vehicleName)) {
-      return setError('License number, vehicle number, and vehicle name are required');
-    }
-    if (role === 'driver' && (Number(driverAge) < 18)) {
-      return setError('Driver must be at least 18 years old');
+
+    if (role !== 'admin') {
+      if (!selectedLocationId) {
+        return setError('Please select a registered delivery location.');
+      }
+      
+      // Perform checklist validations based on admin config
+      if (role === 'patient') {
+        if (configSettings?.patientRequireAge && !patientAge) {
+          return setError('Age is required for patient registration');
+        }
+        if (configSettings?.patientRequireGender && !patientGender) {
+          return setError('Gender selection is required for patient registration');
+        }
+        if (configSettings?.patientRequireBloodGroup && !patientBloodGroup) {
+          return setError('Blood Group selection is required for patient registration');
+        }
+        if (configSettings?.patientRequireAllergies && !patientAllergies) {
+          return setError('Allergy information is required for patient registration');
+        }
+      } else if (role === 'driver') {
+        if (configSettings?.driverRequireAge && !driverAge) {
+          return setError('Age is required for driver registration');
+        }
+        if (driverAge && Number(driverAge) < 18) {
+          return setError('Driver must be at least 18 years old');
+        }
+        if (configSettings?.driverRequireLicensePhoto && !licensePhoto) {
+          return setError('License Photo upload is required for driver registration');
+        }
+        if (configSettings?.driverRequireVehicleDetails && (!licenseNumber || !vehicleNumber || !vehicleName)) {
+          return setError('License number, vehicle number, and vehicle name are required');
+        }
+      } else if (role === 'doctor') {
+        if (configSettings?.doctorRequireSpecialization && !specialization) {
+          return setError('Specialization is required for doctor registration');
+        }
+        if (configSettings?.doctorRequireExperience && !experience) {
+          return setError('Years of experience is required for doctor registration');
+        }
+        if (configSettings?.doctorRequireLicenseDocument && !licenseDoc) {
+          return setError('Medical License Document is required for doctor registration');
+        }
+      }
     }
 
     setLoading(true);
@@ -113,14 +198,21 @@ const Register = () => {
         otherDocuments: otherDoc
       };
     } else if (role === 'patient') {
-      payload.patientDetails = { country, state, city, pincode, landmark };
+      payload.patientDetails = {
+        age: Number(patientAge) || null,
+        gender: patientGender || '',
+        bloodGroup: patientBloodGroup || '',
+        allergies: patientAllergies || '',
+        country, state, city, pincode, landmark
+      };
     } else if (role === 'driver') {
       payload.driverDetails = {
-        age: Number(driverAge),
-        licenseNumber,
-        vehicleNumber,
-        vehicleName,
-        licensePhoto
+        age: Number(driverAge) || null,
+        licenseNumber: licenseNumber || '',
+        vehicleNumber: vehicleNumber || '',
+        vehicleName: vehicleName || '',
+        licensePhoto: licensePhoto || '',
+        country, state, city, pincode, landmark
       };
     } else if (role === 'admin') {
       payload.adminSecret = adminSecret;
@@ -236,35 +328,94 @@ const Register = () => {
               </div>
             </div>
 
+            {/* Location selector dropdown */}
+            {role !== 'admin' && (
+              <div style={sectionStyle}>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={16} style={{ color: 'var(--primary-blue)' }} /> Select Your Location *
+                </h3>
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label className="form-label" style={{ fontWeight: 600 }}>Select From Registered Delivery Locations</label>
+                  <select 
+                    className="form-control" 
+                    value={selectedLocationId} 
+                    onChange={e => handleLocationChange(e.target.value)}
+                    required
+                    style={{ ...inputStyle, padding: '10px' }}
+                  >
+                    <option value="">-- Choose Registered Location --</option>
+                    {deliveryLocations.map(loc => (
+                      <option key={loc._id} value={loc._id}>
+                        {loc.country} &raquo; {loc.state} &raquo; {loc.district} &raquo; {loc.ward ? `${loc.ward} - ` : ''}{loc.area}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedLocationId && (
+                  <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '12px', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }} className="grid-2">
+                      <div><strong>Country:</strong> {country}</div>
+                      <div><strong>State:</strong> {state}</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }} className="grid-2">
+                      <div><strong>District / City:</strong> {city}</div>
+                      <div><strong>Ward / Pincode:</strong> {pincode || '-'}</div>
+                    </div>
+                    <div><strong>Precise Area:</strong> {landmark}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Patient Fields */}
             {role === 'patient' && (
               <div style={sectionStyle}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MapPin size={16} /> Location Details
+                  📋 Patient Profile Details
                 </h3>
                 <div style={grid2}>
-                  <div className="form-group">
-                    <label className="form-label">Country</label>
-                    <input type="text" className="form-control" value={country} onChange={e => setCountry(e.target.value)} placeholder="E.g. India" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">State</label>
-                    <input type="text" className="form-control" value={state} onChange={e => setState(e.target.value)} placeholder="E.g. Andhra Pradesh" />
-                  </div>
+                  {configSettings?.patientRequireAge && (
+                    <div className="form-group">
+                      <label className="form-label">Age *</label>
+                      <input type="number" className="form-control" value={patientAge} onChange={e => setPatientAge(e.target.value)} placeholder="Age" required />
+                    </div>
+                  )}
+                  {configSettings?.patientRequireGender && (
+                    <div className="form-group">
+                      <label className="form-label">Gender *</label>
+                      <select className="form-control" value={patientGender} onChange={e => setPatientGender(e.target.value)} style={{ ...inputStyle, padding: '10px' }} required>
+                        <option value="">-- Choose Gender --</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <div style={grid2}>
-                  <div className="form-group">
-                    <label className="form-label">City</label>
-                    <input type="text" className="form-control" value={city} onChange={e => setCity(e.target.value)} placeholder="E.g. Kakinada" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Pincode</label>
-                    <input type="text" className="form-control" value={pincode} onChange={e => setPincode(e.target.value)} placeholder="E.g. 533003" />
-                  </div>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Landmark / Area</label>
-                  <input type="text" className="form-control" value={landmark} onChange={e => setLandmark(e.target.value)} placeholder="E.g. Near ACET Gate" />
+                  {configSettings?.patientRequireBloodGroup && (
+                    <div className="form-group">
+                      <label className="form-label">Blood Group *</label>
+                      <select className="form-control" value={patientBloodGroup} onChange={e => setPatientBloodGroup(e.target.value)} style={{ ...inputStyle, padding: '10px' }} required>
+                        <option value="">-- Choose Blood Group --</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+                  )}
+                  {configSettings?.patientRequireAllergies && (
+                    <div className="form-group">
+                      <label className="form-label">Allergies *</label>
+                      <input type="text" className="form-control" value={patientAllergies} onChange={e => setPatientAllergies(e.target.value)} placeholder="E.g. Peanuts, Penicillin" required />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -278,12 +429,12 @@ const Register = () => {
                   </h3>
                   <div style={grid2}>
                     <div className="form-group">
-                      <label className="form-label">Specialization *</label>
-                      <input type="text" className="form-control" value={specialization} onChange={e => setSpecialization(e.target.value)} placeholder="E.g. Cardiologist" required />
+                      <label className="form-label">Specialization {configSettings?.doctorRequireSpecialization ? '*' : ''}</label>
+                      <input type="text" className="form-control" value={specialization} onChange={e => setSpecialization(e.target.value)} placeholder="E.g. Cardiologist" required={configSettings?.doctorRequireSpecialization} />
                     </div>
                     <div className="form-group">
-                      <label className="form-label">Experience (Years) *</label>
-                      <input type="number" min="1" className="form-control" value={experience} onChange={e => setExperience(e.target.value)} placeholder="E.g. 5" required />
+                      <label className="form-label">Experience (Years) {configSettings?.doctorRequireExperience ? '*' : ''}</label>
+                      <input type="number" min="1" className="form-control" value={experience} onChange={e => setExperience(e.target.value)} placeholder="E.g. 5" required={configSettings?.doctorRequireExperience} />
                     </div>
                   </div>
                   <div className="form-group">
@@ -299,42 +450,12 @@ const Register = () => {
                   </div>
                 </div>
 
-                <div style={{ ...sectionStyle, background: 'rgba(99,102,241,0.06)' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={16} /> Practice Location
-                  </h3>
-                  <div style={grid2}>
-                    <div className="form-group">
-                      <label className="form-label">Country</label>
-                      <input type="text" className="form-control" value={country} onChange={e => setCountry(e.target.value)} placeholder="E.g. India" />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">State</label>
-                      <input type="text" className="form-control" value={state} onChange={e => setState(e.target.value)} placeholder="E.g. Andhra Pradesh" />
-                    </div>
-                  </div>
-                  <div style={grid2}>
-                    <div className="form-group">
-                      <label className="form-label">City</label>
-                      <input type="text" className="form-control" value={city} onChange={e => setCity(e.target.value)} placeholder="E.g. Kakinada" />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Pincode</label>
-                      <input type="text" className="form-control" value={pincode} onChange={e => setPincode(e.target.value)} placeholder="E.g. 533003" />
-                    </div>
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Landmark / Area</label>
-                    <input type="text" className="form-control" value={landmark} onChange={e => setLandmark(e.target.value)} placeholder="E.g. Near Civil Hospital" />
-                  </div>
-                </div>
-
                 <div style={{ ...sectionStyle, background: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.25)' }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Upload size={16} /> Verification Documents <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 400 }}>(Admin will review)</span>
                   </h3>
-                  <FileUploadField label="Medical License / Registration Certificate *" value={licenseDoc} name={licenseDocName}
-                    onFile={e => handleFileUpload(e, setLicenseDoc, setLicenseDocName)} accept="image/*,.pdf" />
+                  <FileUploadField label={`Medical License / Registration Certificate ${configSettings?.doctorRequireLicenseDocument ? '*' : ''}`} value={licenseDoc} name={licenseDocName}
+                    onFile={e => handleFileUpload(e, setLicenseDoc, setLicenseDocName)} accept="image/*,.pdf" required={configSettings?.doctorRequireLicenseDocument} />
                   <FileUploadField label="Educational Qualification Documents" value={eduQualDoc} name={eduQualDocName}
                     onFile={e => handleFileUpload(e, setEduQualDoc, setEduQualDocName)} accept="image/*,.pdf" />
                   <FileUploadField label="Other Supporting Documents (Optional)" value={otherDoc} name={otherDocName}
@@ -350,27 +471,35 @@ const Register = () => {
                   <Car size={16} /> Driver & Vehicle Details
                 </h3>
                 <div style={grid2}>
-                  <div className="form-group">
-                    <label className="form-label">Your Age *</label>
-                    <input type="number" min="18" max="70" className="form-control" value={driverAge} onChange={e => setDriverAge(e.target.value)} placeholder="E.g. 25" required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Driver License Number *</label>
-                    <input type="text" className="form-control" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} placeholder="E.g. AP0420020012345" required />
-                  </div>
+                  {configSettings?.driverRequireAge && (
+                    <div className="form-group">
+                      <label className="form-label">Your Age *</label>
+                      <input type="number" min="18" max="70" className="form-control" value={driverAge} onChange={e => setDriverAge(e.target.value)} placeholder="E.g. 25" required />
+                    </div>
+                  )}
+                  {configSettings?.driverRequireVehicleDetails && (
+                    <div className="form-group">
+                      <label className="form-label">Driver License Number *</label>
+                      <input type="text" className="form-control" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} placeholder="E.g. AP0420020012345" required />
+                    </div>
+                  )}
                 </div>
-                <div style={grid2}>
-                  <div className="form-group">
-                    <label className="form-label">Vehicle Name *</label>
-                    <input type="text" className="form-control" value={vehicleName} onChange={e => setVehicleName(e.target.value)} placeholder="E.g. Honda Activa" required />
+                {configSettings?.driverRequireVehicleDetails && (
+                  <div style={grid2}>
+                    <div className="form-group">
+                      <label className="form-label">Vehicle Name *</label>
+                      <input type="text" className="form-control" value={vehicleName} onChange={e => setVehicleName(e.target.value)} placeholder="E.g. Honda Activa" required />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Vehicle Number *</label>
+                      <input type="text" className="form-control" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} placeholder="E.g. AP39AA1234" required />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Vehicle Number *</label>
-                    <input type="text" className="form-control" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} placeholder="E.g. AP39AA1234" required />
-                  </div>
-                </div>
-                <FileUploadField label="Driving License Photo *" value={licensePhoto} name={licensePhotoName}
-                  onFile={e => handleFileUpload(e, setLicensePhoto, setLicensePhotoName)} accept="image/*" />
+                )}
+                {configSettings?.driverRequireLicensePhoto && (
+                  <FileUploadField label="Driving License Photo *" value={licensePhoto} name={licensePhotoName}
+                    onFile={e => handleFileUpload(e, setLicensePhoto, setLicensePhotoName)} accept="image/*" required />
+                )}
                 <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: 0 }}>
                   🔒 Your application will be reviewed by admin before you can log in.
                 </p>

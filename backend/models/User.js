@@ -31,6 +31,8 @@ const userSchema = new mongoose.Schema({
   },
 
   patientDetails: {
+    age: { type: Number },
+    gender: { type: String },
     bloodGroup: { type: String },
     allergies: [{ type: String }],
     conditions: [{ type: String }],
@@ -65,6 +67,11 @@ const userSchema = new mongoose.Schema({
     licensePhoto: { type: String },  // base64
     approved: { type: Boolean, default: false },
     status: { type: String, enum: ['active', 'inactive', 'on_delivery'], default: 'active' },
+    country: { type: String },
+    state: { type: String },
+    city: { type: String },
+    pincode: { type: String },
+    landmark: { type: String },
     currentLocation: {
       latitude: { type: Number },
       longitude: { type: Number }

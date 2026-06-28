@@ -10,6 +10,21 @@ const PatientDashboard = () => {
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState('reminders');
 
+  // Logistics Drivers State
+  const [logisticsDrivers, setLogisticsDrivers] = useState([]);
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const res = await api.get('/public/drivers');
+        setLogisticsDrivers(res || []);
+      } catch (err) {
+        console.error('Error fetching drivers in PatientDashboard:', err);
+      }
+    };
+    fetchDrivers();
+  }, []);
+
   // Reminders State
   const [reminders, setReminders] = useState([]);
   const [medName, setMedName] = useState('');
@@ -644,6 +659,7 @@ const PatientDashboard = () => {
           { id: 'booking', name: 'Book Doctor', icon: <Calendar size={16} /> },
           { id: 'vault', name: 'Document Vault', icon: <FileText size={16} /> },
           { id: 'orders', name: `My Orders${myOrders.filter(o => o.status === 'Out for Delivery').length > 0 ? ' 🛵' : ''}`, icon: <ShoppingBag size={16} /> },
+          { id: 'logistics', name: 'Logistics & Drivers', icon: <Truck size={16} /> },
           { id: 'profile', name: 'Profile & Guardian', icon: <User size={16} /> }
         ].map(tab => (
           <button
@@ -1849,6 +1865,73 @@ const PatientDashboard = () => {
               )}
             </GlassCard>
           </div>
+        )}
+
+        {/* Verified Logistics/Drivers Panel */}
+        {activeTab === 'logistics' && (
+          <GlassCard>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Truck size={22} style={{ color: 'var(--primary-blue)' }} /> Platform Verified Logistics & Drivers
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+              List of all active, background-verified delivery dispatch drivers registered on the platform.
+            </p>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                    <th style={{ padding: '12px 8px' }}>Driver</th>
+                    <th style={{ padding: '12px 8px' }}>Status</th>
+                    <th style={{ padding: '12px 8px' }}>Vehicle Info</th>
+                    <th style={{ padding: '12px 8px' }}>Verification Check</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logisticsDrivers.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '24px 8px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        No verified drivers online.
+                      </td>
+                    </tr>
+                  ) : (
+                    logisticsDrivers.map(drv => (
+                      <tr key={drv._id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                        <td style={{ padding: '14px 8px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {drv.photo ? (
+                            <img src={drv.photo} alt={drv.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--primary-blue-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                              {drv.name.charAt(0)}
+                            </div>
+                          )}
+                          {drv.name}
+                        </td>
+                        <td style={{ padding: '14px 8px' }}>
+                          <span style={{
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            background: drv.status === 'active' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                            color: drv.status === 'active' ? 'var(--success-green)' : 'var(--danger-red)'
+                          }}>
+                            {drv.status === 'active' ? '🟢 Active / Online' : '🔴 Offline'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 8px' }}>
+                          <strong>{drv.vehicleName}</strong> ({drv.vehicleNumber})
+                        </td>
+                        <td style={{ padding: '14px 8px', fontWeight: 600, color: 'var(--accent-teal)' }}>
+                          ✅ Background Verified Driver Tick
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </GlassCard>
         )}
 
       </div>

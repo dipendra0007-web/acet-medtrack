@@ -13,13 +13,27 @@ const webSettingSchema = new mongoose.Schema({
   openingAnimationText: { type: String, default: 'ACET MEDTRACK' },
   openingAnimationLogo: { type: String, default: '' }, // base64 string
 
-  // dynamic navbar navigation list
+  // Dynamic navbar navigation list
   customNavLinks: [
     {
       label: { type: String, required: true },
       path: { type: String, required: true }
     }
-  ]
+  ],
+
+  // Admin registration checklist config
+  patientRequireAge: { type: Boolean, default: false },
+  patientRequireGender: { type: Boolean, default: false },
+  patientRequireBloodGroup: { type: Boolean, default: false },
+  patientRequireAllergies: { type: Boolean, default: false },
+  
+  driverRequireAge: { type: Boolean, default: true },
+  driverRequireLicensePhoto: { type: Boolean, default: true },
+  driverRequireVehicleDetails: { type: Boolean, default: true },
+  
+  doctorRequireSpecialization: { type: Boolean, default: true },
+  doctorRequireExperience: { type: Boolean, default: true },
+  doctorRequireLicenseDocument: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = createModel('WebSetting', webSettingSchema);

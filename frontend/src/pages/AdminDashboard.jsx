@@ -128,6 +128,11 @@ const AdminDashboard = () => {
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [locState, setLocState] = useState('');
   const [locArea, setLocArea] = useState('');
+  const [locRegion, setLocRegion] = useState('');
+  const [locCountry, setLocCountry] = useState('India');
+  const [locDistrict, setLocDistrict] = useState('');
+  const [locWard, setLocWard] = useState('');
+  const [locMapLink, setLocMapLink] = useState('');
   const [locLat, setLocLat] = useState('');
   const [locLng, setLocLng] = useState('');
   const [locSearchQuery, setLocSearchQuery] = useState('');
@@ -169,6 +174,20 @@ const AdminDashboard = () => {
   const [splashLogo, setSplashLogo] = useState('');
   const [navItemsList, setNavItemsList] = useState([]);
   
+  // Custom sign-up requirements checklists
+  const [patReqAge, setPatReqAge] = useState(false);
+  const [patReqGender, setPatReqGender] = useState(false);
+  const [patReqBlood, setPatReqBlood] = useState(false);
+  const [patReqAllergies, setPatReqAllergies] = useState(false);
+
+  const [drvReqAge, setDrvReqAge] = useState(true);
+  const [drvReqLicensePhoto, setDrvReqLicensePhoto] = useState(true);
+  const [drvReqVehicle, setDrvReqVehicle] = useState(true);
+
+  const [docReqSpec, setDocReqSpec] = useState(true);
+  const [docReqExp, setDocReqExp] = useState(true);
+  const [docReqLicense, setDocReqLicense] = useState(true);
+  
   // Link editor state
   const [linkEditorOpen, setLinkEditorOpen] = useState(false);
   const [isEditingLink, setIsEditingLink] = useState(false);
@@ -190,6 +209,19 @@ const AdminDashboard = () => {
         setSplashText(data.openingAnimationText || '');
         setSplashLogo(data.openingAnimationLogo || '');
         setNavItemsList(data.customNavLinks || []);
+        
+        setPatReqAge(data.patientRequireAge ?? false);
+        setPatReqGender(data.patientRequireGender ?? false);
+        setPatReqBlood(data.patientRequireBloodGroup ?? false);
+        setPatReqAllergies(data.patientRequireAllergies ?? false);
+        
+        setDrvReqAge(data.driverRequireAge ?? true);
+        setDrvReqLicensePhoto(data.driverRequireLicensePhoto ?? true);
+        setDrvReqVehicle(data.driverRequireVehicleDetails ?? true);
+        
+        setDocReqSpec(data.doctorRequireSpecialization ?? true);
+        setDocReqExp(data.doctorRequireExperience ?? true);
+        setDocReqLicense(data.doctorRequireLicenseDocument ?? true);
       }
     } catch (err) {
       console.error('Failed to load admin settings:', err);
@@ -208,10 +240,23 @@ const AdminDashboard = () => {
         openingAnimationActive: splashActive,
         openingAnimationText: splashText,
         openingAnimationLogo: splashLogo,
-        customNavLinks: navItemsList
+        customNavLinks: navItemsList,
+        
+        patientRequireAge: patReqAge,
+        patientRequireGender: patReqGender,
+        patientRequireBloodGroup: patReqBlood,
+        patientRequireAllergies: patReqAllergies,
+        
+        driverRequireAge: drvReqAge,
+        driverRequireLicensePhoto: drvReqLicensePhoto,
+        driverRequireVehicleDetails: drvReqVehicle,
+        
+        doctorRequireSpecialization: docReqSpec,
+        doctorRequireExperience: docReqExp,
+        doctorRequireLicenseDocument: docReqLicense
       };
       const updated = await api.post('/admin/settings', payload);
-      alert('Website customization saved successfully! Refresh page to see changes.');
+      alert('Website configurations and sign-up requirements saved successfully! Refresh page to see changes.');
       setWebSettings(updated);
     } catch (err) {
       console.error('Failed to update web settings:', err);
@@ -626,14 +671,24 @@ const AdminDashboard = () => {
     }
     try {
       await api.post('/admin/delivery-locations', {
+        region: locRegion,
+        country: locCountry,
         state: locState,
-        area: locArea,
+        district: locDistrict,
+        ward: locWard,
+        locationMapLink: locMapLink,
         latitude: Number(locLat),
-        longitude: Number(locLng)
+        longitude: Number(locLng),
+        area: locArea
       });
       triggerSuccess(`Delivery location "${locArea}" configured successfully.`);
       setLocState('');
       setLocArea('');
+      setLocRegion('');
+      setLocCountry('India');
+      setLocDistrict('');
+      setLocWard('');
+      setLocMapLink('');
       setLocSearchQuery('');
       setShowLocationForm(false);
       fetchAdminData();
@@ -3868,6 +3923,77 @@ const AdminDashboard = () => {
                 )}
               </div>
 
+              {/* Checklist requirements section */}
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '24px' }}>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', color: 'var(--primary-blue)' }}>
+                  ✅ Registration Checklist / Required Field Ticks
+                </h4>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>Configure which additional profile fields users must fill during login/signup registration.</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', flexWrap: 'wrap' }} className="grid-3">
+                  {/* Patient ticks */}
+                  <div>
+                    <h5 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '10px', color: 'var(--accent-teal)' }}>Patient Fields</h5>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={patReqAge} onChange={e => setPatReqAge(e.target.checked)} />
+                        Require Age
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={patReqGender} onChange={e => setPatReqGender(e.target.checked)} />
+                        Require Gender
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={patReqBlood} onChange={e => setPatReqBlood(e.target.checked)} />
+                        Require Blood Group
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={patReqAllergies} onChange={e => setPatReqAllergies(e.target.checked)} />
+                        Require Allergies
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Driver ticks */}
+                  <div>
+                    <h5 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '10px', color: 'var(--warning-orange)' }}>Driver Fields</h5>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={drvReqAge} onChange={e => setDrvReqAge(e.target.checked)} />
+                        Require Driver Age
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={drvReqLicensePhoto} onChange={e => setDrvReqLicensePhoto(e.target.checked)} />
+                        Require License Photo Upload
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={drvReqVehicle} onChange={e => setDrvReqVehicle(e.target.checked)} />
+                        Require Vehicle Details
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Doctor ticks */}
+                  <div>
+                    <h5 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '10px', color: 'var(--primary-blue)' }}>Doctor Fields</h5>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={docReqSpec} onChange={e => setDocReqSpec(e.target.checked)} />
+                        Require Specialization
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={docReqExp} onChange={e => setDocReqExp(e.target.checked)} />
+                        Require Experience Years
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={docReqLicense} onChange={e => setDocReqLicense(e.target.checked)} />
+                        Require License Document Upload
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Section 3: Footer Configurations */}
               <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '24px' }}>
                 <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '16px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', color: 'var(--primary-blue)' }}>
@@ -4012,15 +4138,39 @@ const AdminDashboard = () => {
               <form onSubmit={handleAddDeliveryLocation} style={{ background: 'var(--bg-primary)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
                 <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>Add Delivery Area</h4>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '14px' }} className="grid-3">
                   <div className="form-group">
-                    <label className="form-label">State / Region *</label>
+                    <label className="form-label">Country *</label>
+                    <input type="text" className="form-control" placeholder="E.g. India" value={locCountry} onChange={e => setLocCountry(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">State *</label>
                     <input type="text" className="form-control" placeholder="E.g. Andhra Pradesh" value={locState} onChange={e => setLocState(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Region / Zone</label>
+                    <input type="text" className="form-control" placeholder="E.g. South Zone" value={locRegion} onChange={e => setLocRegion(e.target.value)} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '14px' }} className="grid-3">
+                  <div className="form-group">
+                    <label className="form-label">District / City *</label>
+                    <input type="text" className="form-control" placeholder="E.g. East Godavari" value={locDistrict} onChange={e => setLocDistrict(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Ward / Sector *</label>
+                    <input type="text" className="form-control" placeholder="E.g. Ward 12" value={locWard} onChange={e => setLocWard(e.target.value)} required />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Area / Locality Name *</label>
                     <input type="text" className="form-control" placeholder="E.g. Aditya Campus Yelahanka" value={locArea} onChange={e => setLocArea(e.target.value)} required />
                   </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label className="form-label">Location Google Map Link / URL</label>
+                  <input type="url" className="form-control" placeholder="E.g. https://maps.google.com/?q=..." value={locMapLink} onChange={e => setLocMapLink(e.target.value)} />
                 </div>
 
                 <div style={{ marginBottom: '14px' }} className="form-group">
@@ -4058,16 +4208,20 @@ const AdminDashboard = () => {
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--glass-border)', color: 'var(--text-secondary)', textAlign: 'left' }}>
                     <th style={{ padding: '10px 8px' }}>Area / Locality</th>
+                    <th style={{ padding: '10px 8px' }}>Ward</th>
+                    <th style={{ padding: '10px 8px' }}>District</th>
                     <th style={{ padding: '10px 8px' }}>State</th>
-                    <th style={{ padding: '10px 8px' }}>Latitude</th>
-                    <th style={{ padding: '10px 8px' }}>Longitude</th>
+                    <th style={{ padding: '10px 8px' }}>Region</th>
+                    <th style={{ padding: '10px 8px' }}>Country</th>
+                    <th style={{ padding: '10px 8px' }}>Coordinates</th>
+                    <th style={{ padding: '10px 8px' }}>Map Link</th>
                     <th style={{ padding: '10px 8px', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {deliveryLocations.length === 0 ? (
                     <tr>
-                      <td colSpan="5" style={{ padding: '24px 8px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                      <td colSpan="9" style={{ padding: '24px 8px', color: 'var(--text-secondary)', textAlign: 'center' }}>
                         No delivery locations configured. Add one to set up delivery service areas.
                       </td>
                     </tr>
@@ -4075,9 +4229,23 @@ const AdminDashboard = () => {
                     deliveryLocations.map(loc => (
                       <tr key={loc._id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
                         <td style={{ padding: '14px 8px', fontWeight: 600 }}>📍 {loc.area}</td>
+                        <td style={{ padding: '14px 8px' }}>{loc.ward || '-'}</td>
+                        <td style={{ padding: '14px 8px' }}>{loc.district || '-'}</td>
                         <td style={{ padding: '14px 8px' }}>{loc.state}</td>
-                        <td style={{ padding: '14px 8px', fontFamily: 'monospace' }}>{loc.latitude?.toFixed(5)}</td>
-                        <td style={{ padding: '14px 8px', fontFamily: 'monospace' }}>{loc.longitude?.toFixed(5)}</td>
+                        <td style={{ padding: '14px 8px' }}>{loc.region || '-'}</td>
+                        <td style={{ padding: '14px 8px' }}>{loc.country || '-'}</td>
+                        <td style={{ padding: '14px 8px', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {loc.latitude?.toFixed(4)}, {loc.longitude?.toFixed(4)}
+                        </td>
+                        <td style={{ padding: '14px 8px' }}>
+                          {loc.locationMapLink ? (
+                            <a href={loc.locationMapLink} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-teal)', textDecoration: 'underline' }}>
+                              View Map
+                            </a>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
                         <td style={{ padding: '14px 8px', textAlign: 'right' }}>
                           <button onClick={() => handleDeleteDeliveryLocation(loc._id, loc.area)} className="btn btn-secondary" style={{ padding: '4px 8px', color: 'var(--danger-red)', fontSize: '0.78rem' }}>
                             <Trash2 size={12} /> Remove

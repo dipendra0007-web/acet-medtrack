@@ -481,9 +481,19 @@ const getDeliveryLocations = async (req, res) => {
 };
 
 const createDeliveryLocation = async (req, res) => {
-  const { state, area, latitude, longitude } = req.body;
+  const { region, country, state, district, ward, locationMapLink, latitude, longitude, area } = req.body;
   try {
-    const newLoc = await DeliveryLocation.create({ state, area, latitude: Number(latitude), longitude: Number(longitude) });
+    const newLoc = await DeliveryLocation.create({
+      region: region || '',
+      country: country || '',
+      state: state || '',
+      district: district || '',
+      ward: ward || '',
+      locationMapLink: locationMapLink || '',
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      area: area || ''
+    });
     await logEvent('DELIVERY_LOCATION_CREATED', req.user.id, req.user.name, req.user.role, `Created delivery area: ${area}, ${state}`);
     res.status(201).json(newLoc);
   } catch (error) {
@@ -525,7 +535,17 @@ const getWebSettings = async (req, res) => {
           { label: 'Gallery', path: '/gallery' },
           { label: 'Shop', path: '/shop' },
           { label: 'Contact Us', path: '/contact' }
-        ]
+        ],
+        patientRequireAge: false,
+        patientRequireGender: false,
+        patientRequireBloodGroup: false,
+        patientRequireAllergies: false,
+        driverRequireAge: true,
+        driverRequireLicensePhoto: true,
+        driverRequireVehicleDetails: true,
+        doctorRequireSpecialization: true,
+        doctorRequireExperience: true,
+        doctorRequireLicenseDocument: true
       });
     }
     res.json(settings);

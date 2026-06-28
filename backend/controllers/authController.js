@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const WebSetting = require('../models/WebSetting');
 const { JWT_SECRET } = require('../middleware/auth');
 const { logEvent } = require('../utils/logger');
 
@@ -23,6 +24,20 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
+    // Load requirements checklists
+    const settings = await WebSetting.findOne() || {
+      patientRequireAge: false,
+      patientRequireGender: false,
+      patientRequireBloodGroup: false,
+      patientRequireAllergies: false,
+      driverRequireAge: true,
+      driverRequireLicensePhoto: true,
+      driverRequireVehicleDetails: true,
+      doctorRequireSpecialization: true,
+      doctorRequireExperience: true,
+      doctorRequireLicenseDocument: true
+    };
+
     let isApproved = false;
     let finalRole = role;
 
@@ -33,10 +48,40 @@ const registerUser = async (req, res) => {
       isApproved = true;
     } else if (role === 'patient') {
       isApproved = true;
+      if (settings.patientRequireAge && !patientDetails?.age) {
+        return res.status(400).json({ message: 'Patient Age is required for registration' });
+      }
+      if (settings.patientRequireGender && !patientDetails?.gender) {
+        return res.status(400).json({ message: 'Patient Gender is required for registration' });
+      }
+      if (settings.patientRequireBloodGroup && !patientDetails?.bloodGroup) {
+        return res.status(400).json({ message: 'Patient Blood Group is required for registration' });
+      }
+      if (settings.patientRequireAllergies && (!patientDetails?.allergies || patientDetails.allergies.length === 0)) {
+        return res.status(400).json({ message: 'Allergies info is required for registration' });
+      }
     } else if (role === 'doctor') {
       isApproved = false; // Needs admin approval
+      if (settings.doctorRequireSpecialization && !doctorDetails?.specialization) {
+        return res.status(400).json({ message: 'Doctor Specialization is required for registration' });
+      }
+      if (settings.doctorRequireExperience && !doctorDetails?.experience) {
+        return res.status(400).json({ message: 'Doctor Experience (years) is required for registration' });
+      }
+      if (settings.doctorRequireLicenseDocument && !doctorDetails?.licenseDocument) {
+        return res.status(400).json({ message: 'Doctor License Document upload is required for registration' });
+      }
     } else if (role === 'driver') {
       isApproved = false; // Needs admin approval
+      if (settings.driverRequireAge && !driverDetails?.age) {
+        return res.status(400).json({ message: 'Driver Age is required for registration' });
+      }
+      if (settings.driverRequireLicensePhoto && !driverDetails?.licensePhoto) {
+        return res.status(400).json({ message: 'Driver License Photo is required for registration' });
+      }
+      if (settings.driverRequireVehicleDetails && (!driverDetails?.licenseNumber || !driverDetails?.vehicleNumber || !driverDetails?.vehicleName)) {
+        return res.status(400).json({ message: 'License number, vehicle number, and vehicle name are required for drivers' });
+      }
     } else {
       return res.status(400).json({ message: 'Invalid role specified' });
     }
@@ -78,8 +123,10 @@ const registerUser = async (req, res) => {
       };
     } else if (role === 'patient') {
       userData.patientDetails = {
-        bloodGroup: '',
-        allergies: [],
+        age: Number(patientDetails?.age) || null,
+        gender: patientDetails?.gender || '',
+        bloodGroup: patientDetails?.bloodGroup || '',
+        allergies: Array.isArray(patientDetails?.allergies) ? patientDetails.allergies : (patientDetails?.allergies ? patientDetails.allergies.split(',').map(s => s.trim()) : []),
         conditions: [],
         // Location fields
         country: patientDetails?.country || '',
@@ -100,9 +147,6 @@ const registerUser = async (req, res) => {
         }
       };
     } else if (role === 'driver') {
-      if (!driverDetails?.licenseNumber || !driverDetails?.vehicleNumber || !driverDetails?.vehicleName) {
-        return res.status(400).json({ message: 'License number, vehicle number, and vehicle name are required for drivers' });
-      }
       userData.driverDetails = {
         age: Number(driverDetails?.age) || 18,
         licenseNumber: driverDetails?.licenseNumber || '',
@@ -111,6 +155,12 @@ const registerUser = async (req, res) => {
         licensePhoto: driverDetails?.licensePhoto || '',
         approved: false,
         status: 'active',
+        // Location fields
+        country: driverDetails?.country || '',
+        state: driverDetails?.state || '',
+        city: driverDetails?.city || '',
+        pincode: driverDetails?.pincode || '',
+        landmark: driverDetails?.landmark || '',
         currentLocation: { latitude: null, longitude: null }
       };
     }

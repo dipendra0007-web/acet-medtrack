@@ -35,8 +35,21 @@ const Shop = () => {
   // Leaflet CDN injection state
   const [leafletLoaded, setLeafletLoaded] = useState(false);
 
+  const [deliveryLocations, setDeliveryLocations] = useState([]);
+  const [selectedLocId, setSelectedLocId] = useState('');
+
   useEffect(() => {
     fetchShopCatalog();
+    
+    const fetchLocations = async () => {
+      try {
+        const data = await api.get('/public/delivery-locations');
+        setDeliveryLocations(data || []);
+      } catch (err) {
+        console.error('Error fetching delivery locations:', err);
+      }
+    };
+    fetchLocations();
 
     // Dynamically inject Leaflet CDN
     const link = document.createElement('link');
@@ -528,16 +541,43 @@ const Shop = () => {
                         </div>
 
                         <div className="form-group">
-                          <label className="form-label">Delivery Street Address *</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
-                            value={address} 
-                            onChange={e => setAddress(e.target.value)} 
-                            placeholder="E.g. Kamakshipura, Yelahanka, ACET Campus" 
-                            required 
-                          />
+                          <label className="form-label">Delivery Service Area * (We only deliver to configured locations)</label>
+                          <select
+                            className="form-control"
+                            value={selectedLocId}
+                            onChange={e => {
+                              const locId = e.target.value;
+                              setSelectedLocId(locId);
+                              if (!locId) {
+                                setAddress('');
+                                setCoordinates('');
+                              } else {
+                                const selected = deliveryLocations.find(l => l._id === locId);
+                                if (selected) {
+                                  const fullAddr = `${selected.ward ? `${selected.ward} - ` : ''}${selected.area}, ${selected.district}, ${selected.state}, ${selected.country}`;
+                                  setAddress(fullAddr);
+                                  setCoordinates(`${selected.latitude},${selected.longitude}`);
+                                }
+                              }
+                            }}
+                            required
+                            style={{ padding: '10px' }}
+                          >
+                            <option value="">-- Select Approved Delivery Location --</option>
+                            {deliveryLocations.map(loc => (
+                              <option key={loc._id} value={loc._id}>
+                                {loc.country} &raquo; {loc.state} &raquo; {loc.district} &raquo; {loc.ward ? `${loc.ward} - ` : ''}{loc.area}
+                              </option>
+                            ))}
+                          </select>
                         </div>
+
+                        {address && (
+                          <div style={{ background: 'rgba(20, 184, 166, 0.05)', border: '1px solid var(--accent-teal)', borderRadius: '8px', padding: '12px', marginBottom: '14px', fontSize: '0.8rem' }}>
+                            <div><strong>Confirmed Address:</strong> {address}</div>
+                            <div style={{ marginTop: '4px' }}><strong>Coordinates:</strong> {coordinates}</div>
+                          </div>
+                        )}
 
                         <div className="form-group">
                           <label className="form-label">Floor / Building / Room Name *</label>

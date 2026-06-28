@@ -107,7 +107,17 @@ app.get('/api/public/settings', async (req, res) => {
           { label: 'Gallery', path: '/gallery' },
           { label: 'Shop', path: '/shop' },
           { label: 'Contact Us', path: '/contact' }
-        ]
+        ],
+        patientRequireAge: false,
+        patientRequireGender: false,
+        patientRequireBloodGroup: false,
+        patientRequireAllergies: false,
+        driverRequireAge: true,
+        driverRequireLicensePhoto: true,
+        driverRequireVehicleDetails: true,
+        doctorRequireSpecialization: true,
+        doctorRequireExperience: true,
+        doctorRequireLicenseDocument: true
       });
     }
     res.json(settings);
@@ -144,6 +154,26 @@ app.get('/api/public/delivery-locations', async (req, res) => {
   } catch (err) {
     console.error('Error fetching delivery locations:', err);
     res.status(500).json({ message: 'Server error fetching delivery locations' });
+  }
+});
+
+app.get('/api/public/drivers', async (req, res) => {
+  try {
+    const drivers = await User.find({ role: 'driver', 'driverDetails.approved': true });
+    const cleaned = drivers.map(d => ({
+      _id: d._id,
+      name: d.name,
+      photo: d.photo,
+      status: d.driverDetails?.status || 'inactive',
+      vehicleName: d.driverDetails?.vehicleName || '',
+      vehicleNumber: d.driverDetails?.vehicleNumber || '',
+      state: d.driverDetails?.state || '',
+      area: d.driverDetails?.landmark || ''
+    }));
+    res.json(cleaned);
+  } catch (err) {
+    console.error('Error fetching public drivers list:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
