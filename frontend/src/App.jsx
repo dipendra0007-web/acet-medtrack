@@ -48,10 +48,12 @@ function App() {
                   <Route path="/doctor" element={<Dashboard />} />
                   <Route path="/admin" element={<Dashboard />} />
                   <Route path="/parent" element={<Dashboard />} />
+                  <Route path="/driver" element={<Dashboard />} />
                   <Route path="/PATIENT" element={<Dashboard />} />
                   <Route path="/DOCTOR" element={<Dashboard />} />
                   <Route path="/ADMIN" element={<Dashboard />} />
                   <Route path="/PARENT" element={<Dashboard />} />
+                  <Route path="/DRIVER" element={<Dashboard />} />
                 </Routes>
               </main>
 
